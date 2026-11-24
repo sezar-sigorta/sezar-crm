@@ -26,7 +26,7 @@ import { addYearsYmd, fmtYmd, fromLocalInput } from "@/lib/format";
 import { ingestLead } from "@/lib/ingest";
 import { fetchMetaLead, metaLeadToIncoming } from "@/lib/meta";
 import { normalizePhone } from "@/lib/phone";
-import { websitePayloadToLead } from "@/lib/website";
+import { websitePayloadToLeads } from "@/lib/website";
 
 const { contacts, requests, activities, inbox, policies, reminders } = schema;
 const uuid = z.string().uuid();
@@ -926,14 +926,21 @@ export async function retryInbox(id: string) {
   if (!row || row.status === "processed") return;
   const p = row.payload as Record<string, unknown>;
   try {
-    const lead =
+    const leads =
       row.channel === "website"
-        ? websitePayloadToLead(p)
-        : await (async () => {
-            const { lead, formName } = await fetchMetaLead(String(p.leadgen_id));
-            return metaLeadToIncoming(lead, formName);
-          })();
-    const res = await ingestLead(lead);
+        ? websitePayloadToLeads(p)
+        : [
+            await (async () => {
+              const { lead, formName } = await fetchMetaLead(String(p.leadgen_id));
+              return metaLeadToIncoming(lead, formName);
+            })(),
+          ];
+    let res: Awaited<ReturnType<typeof ingestLead>> = { ok: false, error: "invalid_phone" };
+    for (const lead of leads) {
+      const r = await ingestLead(lead);
+      if (r.ok && !res.ok) res = r;
+      else if (!res.ok) res = r;
+    }
     await db
       .update(inbox)
       .set(res.ok ? { status: "processed", error: null, requestId: res.requestId } : { status: "failed", error: res.error })

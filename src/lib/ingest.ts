@@ -10,6 +10,8 @@ export type IncomingLead = {
   phone: string;
   email?: string | null;
   city?: string | null;
+  /** YYYY-MM-DD */
+  birthDate?: string | null;
   product: ProductCode;
   segment?: "bireysel" | "kurumsal";
   /** Kurumsal: company title. When missing the person's name is used until someone fills it in. */
@@ -75,6 +77,7 @@ export async function ingestLead(lead: IncomingLead): Promise<IngestResult> {
           phone,
           email: lead.email || null,
           city: lead.city || null,
+          birthDate: lead.birthDate || null,
           kvkkConsent: !!lead.kvkkConsent,
           kvkkConsentAt: lead.kvkkConsent ? now : null,
           marketingConsent: !!lead.marketingConsent,
@@ -90,6 +93,7 @@ export async function ingestLead(lead: IncomingLead): Promise<IngestResult> {
       const patch: Partial<typeof contacts.$inferInsert> = { updatedAt: now };
       if (!contact.email && lead.email) patch.email = lead.email;
       if (!contact.city && lead.city) patch.city = lead.city;
+      if (!contact.birthDate && lead.birthDate) patch.birthDate = lead.birthDate;
       // A company title arriving later replaces the placeholder (the contact person's name).
       if (kind === "kurumsal" && company && contact.fullName === contact.contactPerson) patch.fullName = company;
       if (kind === "kurumsal" && !contact.contactTitle && lead.contactTitle) patch.contactTitle = lead.contactTitle;
