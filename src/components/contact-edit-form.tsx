@@ -8,11 +8,11 @@ import { formatPhone } from "@/lib/phone";
 import { CorporateFields } from "./corporate-fields";
 
 export function ContactEditForm({ c }: { c: Contact }) {
-  const [state, onSubmit, pending] = useFormAction(updateContact);
+  const [state, formProps, pending] = useFormAction(updateContact);
   const [kind, setKind] = useState(c.kind === "kurumsal" ? "kurumsal" : "bireysel");
   const corp = kind === "kurumsal";
   return (
-    <form onSubmit={onSubmit} className="space-y-3 text-sm">
+    <form {...formProps} className="space-y-3 text-sm">
       <input type="hidden" name="id" value={c.id} />
       <input type="hidden" name="kind" value={kind} />
       <div className="inline-flex rounded-lg border border-line bg-white p-0.5" role="radiogroup" aria-label="Tür">

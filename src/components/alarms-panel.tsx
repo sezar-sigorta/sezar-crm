@@ -92,7 +92,7 @@ function AlarmRow({ r, overdue }: { r: Reminder; overdue: boolean }) {
 }
 
 function AddAlarm({ contactId, links, onDone, canCancel }: { contactId: string; links: Link[]; onDone: () => void; canCancel: boolean }) {
-  const [state, onSubmit, pending] = useFormAction(addReminder);
+  const [state, formProps, pending] = useFormAction(addReminder);
   const formRef = useRef<HTMLFormElement>(null);
   const [at, setAt] = useState("");
   const [title, setTitle] = useState("");
@@ -112,7 +112,7 @@ function AddAlarm({ contactId, links, onDone, canCancel }: { contactId: string; 
   const sel = links.find((l) => l.value === link);
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="mb-3 space-y-2 rounded-lg bg-cream-l p-3">
+    <form ref={formRef} {...formProps} className="mb-3 space-y-2 rounded-lg bg-cream-l p-3">
       <input type="hidden" name="contactId" value={contactId} />
       {sel && <input type="hidden" name={sel.field} value={sel.value} />}
       <input type="datetime-local" name="at" required value={at} onChange={(e) => setAt(e.target.value)} className="input" aria-label="Alarm zamanı" />

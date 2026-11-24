@@ -9,13 +9,13 @@ import { PolicyFields } from "./policy-fields";
 import { useFormAction } from "./use-form-action";
 
 export function NewContactForm({ mode }: { mode: "lead" | "customer" }) {
-  const [state, onSubmit, pending] = useFormAction(mode === "customer" ? createCustomer : createManualLead);
+  const [state, formProps, pending] = useFormAction(mode === "customer" ? createCustomer : createManualLead);
   const [kind, setKind] = useState<"bireysel" | "kurumsal">("bireysel");
   const [withPolicy, setWithPolicy] = useState(true);
   const corp = kind === "kurumsal";
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
+    <form {...formProps} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="kind" value={kind} />
       <fieldset className="sm:col-span-2">
         <legend className="label">Tür</legend>

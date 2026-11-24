@@ -113,7 +113,7 @@ function tagsOf(a: Act, labels: Record<string, string>) {
 }
 
 function NoteForm({ contactId, ownProducts }: { contactId: string; ownProducts: string[] }) {
-  const [state, onSubmit, pending] = useFormAction(logActivity);
+  const [state, formProps, pending] = useFormAction(logActivity);
   const [product, setProduct] = useState("");
   const [topic, setTopic] = useState("");
   const [status, setStatus] = useState("note");
@@ -129,7 +129,7 @@ function NoteForm({ contactId, ownProducts }: { contactId: string; ownProducts: 
   const others = PRODUCTS.filter((p) => p.code !== "genel" && !ownProducts.includes(p.code));
 
   return (
-    <form onSubmit={onSubmit} className="@container space-y-3 border-b border-line p-4">
+    <form {...formProps} className="@container space-y-3 border-b border-line p-4">
       <input type="hidden" name="contactId" value={contactId} />
       <div className="grid gap-2 @lg:grid-cols-3">
         <label className="text-xs text-ink-2">

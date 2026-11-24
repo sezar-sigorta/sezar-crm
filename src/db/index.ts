@@ -14,8 +14,9 @@ async function connect(): Promise<Db> {
   if (url) {
     const { drizzle } = await import("drizzle-orm/postgres-js");
     const postgres = (await import("postgres")).default;
-    // prepare:false keeps it compatible with Supabase's transaction pooler.
-    const client = postgres(url, { prepare: false, max: 5 });
+    // Supabase's transaction pooler supports neither prepared statements nor pipelining:
+    // with several queries per connection in flight (e.g. the dashboard's Promise.all) they hang.
+    const client = postgres(url, { prepare: false, max: 5, max_pipeline: 1 });
     return drizzle(client, { schema });
   }
   const { PGlite } = await import("@electric-sql/pglite");

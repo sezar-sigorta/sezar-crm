@@ -11,7 +11,7 @@ async function main() {
     console.error("DATABASE_URL tanımlı değil.");
     process.exit(1);
   }
-  const client = postgres(url, { max: 1, prepare: false });
+  const client = postgres(url, { max: 1, prepare: false, max_pipeline: 1 });
   await migrate(drizzle(client), { migrationsFolder: "./drizzle" });
   await client.end();
   console.log("Migration tamam.");

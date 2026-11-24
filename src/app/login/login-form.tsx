@@ -4,9 +4,9 @@ import { useFormAction } from "@/components/use-form-action";
 import { login } from "./actions";
 
 export function LoginForm() {
-  const [state, onSubmit, pending] = useFormAction(login);
+  const [state, formProps, pending] = useFormAction(login);
   return (
-    <form onSubmit={onSubmit} className="card space-y-4 p-6 shadow-xl shadow-black/20">
+    <form {...formProps} className="card space-y-4 p-6 shadow-xl shadow-black/20">
       <div>
         <label className="label" htmlFor="email">
           E-posta

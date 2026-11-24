@@ -34,12 +34,12 @@ export function ConvertButton({
 }
 
 function ConvertDialog({ contactId, name, defaultProduct, onClose }: { contactId: string; name: string; defaultProduct?: string; onClose: () => void }) {
-  const [state, onSubmit, pending] = useFormAction(convertToCustomer);
+  const [state, formProps, pending] = useFormAction(convertToCustomer);
   const [withPolicy, setWithPolicy] = useState(true);
 
   return (
     <Modal title={`${name} müşteri olsun`} sub="Kişi Müşteriler listesine geçer. Kesilen poliçeyi şimdi eklerseniz yenileme alarmları otomatik kurulur." onClose={onClose} wide>
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form {...formProps} className="space-y-4">
         <input type="hidden" name="contactId" value={contactId} />
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="addPolicy" checked={withPolicy} onChange={(e) => setWithPolicy(e.target.checked)} className="accent-navy" />

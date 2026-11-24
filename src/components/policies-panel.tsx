@@ -149,7 +149,7 @@ export function PolicyDialog({
   notice?: React.ReactNode;
   onClose: () => void;
 }) {
-  const [state, onSubmit, pending] = useFormAction(savePolicy);
+  const [state, formProps, pending] = useFormAction(savePolicy);
   useEffect(() => {
     if (state?.ok) onClose();
   }, [state, onClose]);
@@ -160,7 +160,7 @@ export function PolicyDialog({
       onClose={onClose}
       wide
     >
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form {...formProps} className="space-y-4">
         <input type="hidden" name="contactId" value={contactId} />
         {p && <input type="hidden" name="id" value={p.id} />}
         {documentId && <input type="hidden" name="documentId" value={documentId} />}
