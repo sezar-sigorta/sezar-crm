@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Sezar Sigorta brand: navy + cream (same tokens as sezarsigorta.com). */
+@theme {
+  --color-navy: #14213d;
+  --color-navy-2: #1e2c4e;
+  --color-navy-3: #26375f;
+  --color-navy-m: #5b6a8f;
+  --color-navy-l: #c5cee3;
+  --color-cream: #f4ede0;
+  --color-cream-d: #e3d6bf;
+  --color-cream-l: #fbf8f2;
+  --color-line: #dcd2c0;
+  --color-ink: #14213d;
+  --color-ink-2: #5b6a8f;
+  --color-accent: #c2410c;
+  --color-accent-l: #f08a5d;
+  --font-sans: var(--font-inter), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
+  --radius-card: 12px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--color-cream-l);
+  color: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+@utility card {
+  @apply rounded-[var(--radius-card)] border border-line bg-white;
+}
+@utility btn {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-default disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-navy text-cream hover:bg-navy-3;
+}
+@utility btn-ghost {
+  @apply btn border border-line bg-white text-navy hover:bg-cream;
+}
+@utility btn-accent {
+  @apply btn bg-accent text-white hover:bg-[#a8380a];
+}
+@utility btn-wa {
+  @apply btn bg-[#1f9d55] text-white hover:bg-[#188046];
+}
+@utility input {
+  @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-navy outline-none placeholder:text-navy-m/60 focus:border-navy-m focus:ring-2 focus:ring-navy-l/60;
+}
+@utility label {
+  @apply mb-1 block text-xs font-medium text-ink-2;
+}
+@utility chip {
+  @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-navy-m);
+  outline-offset: 2px;
 }

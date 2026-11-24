@@ -1,0 +1,81 @@
+{
+  "who": {
+    "q": "Kimi korumak istiyorsunuz?",
+    "o": {
+      "me": "Kendimi",
+      "fam": "Ailemi",
+      "biz": "İşletmemi"
+    }
+  },
+  "age": {
+    "q": "Kaç yaşındasınız?",
+    "o": {
+      "a1": "18–25",
+      "a2": "26–35",
+      "a3": "36–50",
+      "a4": "51 ve üzeri"
+    }
+  },
+  "car": {
+    "q": "Aracınız var mı?",
+    "o": {
+      "y": "Evet",
+      "n": "Hayır"
+    }
+  },
+  "home": {
+    "q": "Nerede yaşıyorsunuz?",
+    "o": {
+      "own": "Kendi evimde",
+      "rent": "Kirada",
+      "other": "Ailemle ya da başka"
+    }
+  },
+  "health": {
+    "q": "Sağlıkta neye ihtiyacınız var?",
+    "o": {
+      "tss": "SGK’lıyım, fark ödemek istemiyorum",
+      "ozs": "Kapsamlı özel sağlık",
+      "no": "Şimdilik gerek yok"
+    }
+  },
+  "extra": {
+    "q": "Bunlardan size uyan var mı?",
+    "o": {
+      "travel": "Yurt dışına seyahat ediyorum",
+      "pet": "Kedim ya da köpeğim var",
+      "active": "Aktif bir hayatım var, spor yapıyorum"
+    }
+  },
+  "size": {
+    "q": "Kaç kişi çalışıyor?",
+    "o": {
+      "s1": "1–9",
+      "s2": "10–49",
+      "s3": "50–249"
+    }
+  },
+  "place": {
+    "q": "Fiziksel bir mekânınız var mı?",
+    "o": {
+      "y": "Evet",
+      "n": "Hayır, uzaktan çalışıyoruz"
+    }
+  },
+  "data": {
+    "q": "Müşteri verisi tutuyor musunuz?",
+    "o": {
+      "y": "Evet",
+      "n": "Hayır"
+    }
+  },
+  "bizx": {
+    "q": "Bunlardan size uyan var mı?",
+    "o": {
+      "fleet": "Şirket aracımız var",
+      "cargo": "Mal gönderiyor ya da taşıyoruz",
+      "pro": "Danışmanlık, yazılım ya da sağlık hizmeti veriyoruz",
+      "inv": "Yatırım aldık"
+    }
+  }
+}

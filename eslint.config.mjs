@@ -11,6 +11,8 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Turkish UI copy is full of apostrophes and quotes ("Meta'dan", "sizi arayalım").
+  { rules: { "react/no-unescaped-entities": "off" } },
   {
     ignores: [
       "node_modules/**",
