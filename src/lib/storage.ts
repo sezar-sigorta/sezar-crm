@@ -12,7 +12,10 @@ const LOCAL_DIR = path.join(process.cwd(), ".data", "files");
 function supabase() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  return url && key ? { url: url.replace(/\/$/, ""), key } : null;
+  if (!url || !key) return null;
+  // New secret keys (sb_secret_…) go in the "apikey" header; legacy service_role JWTs also as Bearer.
+  const auth: Record<string, string> = key.startsWith("eyJ") ? { apikey: key, Authorization: `Bearer ${key}` } : { apikey: key };
+  return { url: url.replace(/\/$/, ""), auth };
 }
 
 function assertKey(key: string) {
@@ -25,7 +28,7 @@ export async function putFile(key: string, data: Buffer, mimeType: string) {
   if (sb) {
     const res = await fetch(`${sb.url}/storage/v1/object/${BUCKET}/${key}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${sb.key}`, "Content-Type": mimeType, "x-upsert": "false" },
+      headers: { ...sb.auth, "Content-Type": mimeType, "x-upsert": "false" },
       body: new Uint8Array(data),
     });
     if (!res.ok) throw new Error(`Dosya yüklenemedi (${res.status})`);
@@ -44,7 +47,7 @@ export async function getFile(key: string): Promise<Buffer> {
   const sb = supabase();
   if (sb) {
     const res = await fetch(`${sb.url}/storage/v1/object/${BUCKET}/${key}`, {
-      headers: { Authorization: `Bearer ${sb.key}` },
+      headers: sb.auth,
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`Dosya okunamadı (${res.status})`);
@@ -57,7 +60,7 @@ export async function deleteFile(key: string) {
   assertKey(key);
   const sb = supabase();
   if (sb) {
-    await fetch(`${sb.url}/storage/v1/object/${BUCKET}/${key}`, { method: "DELETE", headers: { Authorization: `Bearer ${sb.key}` } });
+    await fetch(`${sb.url}/storage/v1/object/${BUCKET}/${key}`, { method: "DELETE", headers: sb.auth });
     return;
   }
   await fs.rm(path.join(LOCAL_DIR, key), { force: true });

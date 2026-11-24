@@ -46,3 +46,5 @@ next-env.d.ts
 /.data
 /.data-yedek-*
 /.next-check/
+/supabase-sifre.txt
+/scripts/tmp/

@@ -6,20 +6,45 @@ import { eq } from "drizzle-orm";
 import { createInterface } from "node:readline";
 import { getDb, schema } from "../src/db";
 
-async function ask(q: string) {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  // Hide typed characters.
-  const out = rl as unknown as { _writeToOutput: (s: string) => void; output: NodeJS.WriteStream };
-  out._writeToOutput = (s: string) => {
-    if (s.includes(q)) out.output.write(s);
-  };
-  return new Promise<string>((res) =>
-    rl.question(q, (a) => {
-      rl.close();
+/** Reads a password with nothing echoed (raw terminal mode; one "•" per character). */
+async function ask(q: string): Promise<string> {
+  const stdin = process.stdin;
+  if (!stdin.isTTY) {
+    // Piped input (not a terminal): read one line.
+    const rl = createInterface({ input: stdin });
+    return new Promise((res) => rl.once("line", (l) => (rl.close(), res(l))));
+  }
+  process.stdout.write(q);
+  stdin.setRawMode(true);
+  stdin.resume();
+  stdin.setEncoding("utf8");
+  return new Promise<string>((res) => {
+    let value = "";
+    const done = (ok: boolean) => {
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.off("data", onData);
       process.stdout.write("\n");
-      res(a);
-    }),
-  );
+      if (!ok) process.exit(130);
+      res(value);
+    };
+    const onData = (chunk: string) => {
+      for (const ch of chunk) {
+        if (ch === "\r" || ch === "\n") return done(true);
+        if (ch === "\u0003") return done(false); // Ctrl-C
+        if (ch === "\u007f" || ch === "\b") {
+          if (value.length) {
+            value = value.slice(0, -1);
+            process.stdout.write("\b \b");
+          }
+        } else if (ch >= " ") {
+          value += ch;
+          process.stdout.write("•");
+        }
+      }
+    };
+    stdin.on("data", onData);
+  });
 }
 
 async function main() {
@@ -31,6 +56,10 @@ async function main() {
   const password = process.env.SZ_PASSWORD || (await ask("Şifre (en az 10 karakter): "));
   if (password.length < 10) {
     console.error("Şifre en az 10 karakter olmalı.");
+    process.exit(1);
+  }
+  if (!process.env.SZ_PASSWORD && (await ask("Şifre tekrar: ")) !== password) {
+    console.error("Şifreler aynı değil, hiçbir şey değiştirilmedi.");
     process.exit(1);
   }
   const db = await getDb();

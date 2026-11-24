@@ -43,6 +43,13 @@
       "when": 1795510312374,
       "tag": "0005_documents_and_ai",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795520446148,
+      "tag": "0006_revoke_public_roles",
+      "breakpoints": true
     }
   ]
 }
