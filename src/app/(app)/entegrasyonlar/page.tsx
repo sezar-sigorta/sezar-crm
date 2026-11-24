@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { PageHeader } from "@/components/chips";
+import { PullMetaButton } from "@/components/pull-meta-button";
 import { RetryButton } from "@/components/retry-button";
 import { fmtDateTime } from "@/lib/format";
 import { recentInbox } from "@/lib/queries";
@@ -40,6 +41,7 @@ export default async function Entegrasyonlar() {
             <Row k="Verify token" v="<META_VERIFY_TOKEN>" />
             <Row k="Alan" v="Page → leadgen" />
           </dl>
+          {checks[1].ok && <PullMetaButton />}
         </section>
       </div>
 

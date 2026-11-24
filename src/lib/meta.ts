@@ -32,11 +32,11 @@ async function graph<T>(path: string, fields: string): Promise<T> {
   return json as T;
 }
 
+const LEAD_FIELDS =
+  "created_time,field_data,ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,form_id,platform,is_organic";
+
 export async function fetchMetaLead(leadgenId: string) {
-  const lead = await graph<MetaLead>(
-    leadgenId,
-    "created_time,field_data,ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,form_id,platform,is_organic",
-  );
+  const lead = await graph<MetaLead>(leadgenId, LEAD_FIELDS);
   let formName = "";
   if (lead.form_id) {
     try {
@@ -46,6 +46,44 @@ export async function fetchMetaLead(leadgenId: string) {
     }
   }
   return { lead, formName };
+}
+
+type Page<T> = { data?: T[]; paging?: { next?: string } };
+
+async function graphPages<T>(path: string, params: Record<string, string>, max = 20): Promise<T[]> {
+  const token = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!token) throw new Error("META_PAGE_ACCESS_TOKEN is not set");
+  const q = new URLSearchParams({ ...params, access_token: token });
+  let url: string | undefined = `${GRAPH()}/${path}?${q}`;
+  const out: T[] = [];
+  for (let i = 0; url && i < max; i++) {
+    const res: Response = await fetch(url, { cache: "no-store" });
+    const json = (await res.json()) as Page<T> & { error?: unknown };
+    if (!res.ok) throw new Error(`Graph API ${res.status}: ${JSON.stringify(json?.error ?? json).slice(0, 300)}`);
+    out.push(...(json.data ?? []));
+    url = json.paging?.next;
+  }
+  return out;
+}
+
+/**
+ * Every lead submitted to the Page's lead forms in the last `days` days, newest first.
+ * Used by the "Meta'dan çek" button: a safety net for webhooks Meta did not deliver
+ * (e.g. while the app is still in Development mode).
+ */
+export async function listRecentMetaLeads(days = 90) {
+  const forms = await graphPages<{ id: string; name?: string }>("me/leadgen_forms", { fields: "id,name", limit: "100" });
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  const all: { lead: MetaLead; formName: string }[] = [];
+  for (const f of forms) {
+    const leads = await graphPages<MetaLead>(`${f.id}/leads`, {
+      fields: LEAD_FIELDS,
+      limit: "100",
+      filtering: JSON.stringify([{ field: "time_created", operator: "GREATER_THAN", value: since }]),
+    });
+    for (const lead of leads) all.push({ lead: { form_id: f.id, ...lead }, formName: f.name ?? "" });
+  }
+  return { forms: forms.length, leads: all };
 }
 
 // Standard Meta field keys → our fields. Everything else is kept as a form answer.

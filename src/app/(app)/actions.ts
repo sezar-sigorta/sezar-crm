@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -24,7 +24,7 @@ import {
 } from "@/lib/constants";
 import { addYearsYmd, fmtYmd, fromLocalInput } from "@/lib/format";
 import { ingestLead } from "@/lib/ingest";
-import { fetchMetaLead, metaLeadToIncoming } from "@/lib/meta";
+import { fetchMetaLead, listRecentMetaLeads, metaLeadToIncoming } from "@/lib/meta";
 import { normalizePhone } from "@/lib/phone";
 import { websitePayloadToLeads } from "@/lib/website";
 
@@ -951,3 +951,72 @@ export async function retryInbox(id: string) {
   revalidatePath("/entegrasyonlar");
 }
 
+
+export type PullMetaResult =
+  | { ok: true; forms: number; found: number; imported: number; known: number; failed: number }
+  | { ok: false; error: string };
+
+/**
+ * "Meta'dan çek": reads the last 90 days of leads from every lead form of the Page and imports
+ * the ones the CRM has not seen yet. Safe to press any number of times.
+ */
+export async function pullMetaLeads(): Promise<PullMetaResult> {
+  await requireUser();
+  if (!process.env.META_PAGE_ACCESS_TOKEN) return { ok: false, error: "META_PAGE_ACCESS_TOKEN ayarlı değil." };
+  let list: Awaited<ReturnType<typeof listRecentMetaLeads>>;
+  try {
+    list = await listRecentMetaLeads(90);
+  } catch (e) {
+    return { ok: false, error: String(e).slice(0, 300) };
+  }
+  const db = await getDb();
+  const ids = list.leads.map((l) => l.lead.id);
+  const known = new Set<string>();
+  const retryRows = new Map<string, string>();
+  if (ids.length) {
+    const fromRequests = await db
+      .select({ id: requests.externalId })
+      .from(requests)
+      .where(inArray(requests.externalId, ids.map((id) => `meta:${id}`)));
+    for (const r of fromRequests) if (r.id) known.add(r.id.slice(5));
+    // Leads merged into an existing open request keep no externalId; the inbox remembers them.
+    // A failed earlier attempt is retried in its own inbox row instead of adding a new one.
+    const fromInbox = await db
+      .select({ row: inbox.id, status: inbox.status, id: sql<string>`${inbox.payload}->>'leadgen_id'` })
+      .from(inbox)
+      .where(and(eq(inbox.channel, "meta"), inArray(sql`${inbox.payload}->>'leadgen_id'`, ids)));
+    for (const r of fromInbox) {
+      if (r.status === "processed") known.add(r.id);
+      else if (!known.has(r.id)) retryRows.set(r.id, r.row);
+    }
+  }
+
+  let imported = 0;
+  let failed = 0;
+  // Oldest first, so profiles and requests are created in the order people filled the forms.
+  for (const { lead, formName } of [...list.leads].reverse()) {
+    if (known.has(lead.id)) continue;
+    const payload = { leadgen_id: lead.id, form_id: lead.form_id, via: "pull", lead, formName };
+    let rowId = retryRows.get(lead.id);
+    if (rowId) await db.update(inbox).set({ payload }).where(eq(inbox.id, rowId));
+    else [{ id: rowId }] = await db.insert(inbox).values({ channel: "meta", payload }).returning({ id: inbox.id });
+    const row = { id: rowId };
+    try {
+      const res = await ingestLead(metaLeadToIncoming(lead, formName));
+      await db
+        .update(inbox)
+        .set(res.ok ? { status: "processed", requestId: res.requestId } : { status: "failed", error: res.error })
+        .where(eq(inbox.id, row.id));
+      if (res.ok) imported++;
+      else failed++;
+    } catch (e) {
+      failed++;
+      await db.update(inbox).set({ status: "failed", error: String(e).slice(0, 500) }).where(eq(inbox.id, row.id));
+    }
+  }
+  revalidatePath("/entegrasyonlar");
+  revalidatePath("/leadler");
+  revalidatePath("/talepler");
+  revalidatePath("/");
+  return { ok: true, forms: list.forms, found: ids.length, imported, known: known.size, failed };
+}
