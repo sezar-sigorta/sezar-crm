@@ -63,7 +63,7 @@ export function AiAnalysis({
             </p>
           )}
           {error && (
-            <p role="alert" className="text-accent">
+            <p role="alert" className="text-brand">
               {error}
             </p>
           )}
@@ -147,7 +147,7 @@ export function AiAnalysis({
 
               <p className="mt-3 text-xs text-ink-2">
                 {isCustomer ? "Kaybetme riski" : "Vazgeçme riski"}:{" "}
-                <b className={analysis.churn_risk.level === "yüksek" ? "text-accent" : analysis.churn_risk.level === "orta" ? "text-amber-700" : "text-emerald-700"}>
+                <b className={analysis.churn_risk.level === "yüksek" ? "text-brand" : analysis.churn_risk.level === "orta" ? "text-amber-700" : "text-emerald-700"}>
                   {analysis.churn_risk.level}
                 </b>{" "}
                 — {analysis.churn_risk.reason}

@@ -118,7 +118,7 @@ function PolicyRow({ p, onEdit, muted }: { p: Policy; onEdit: () => void; muted?
             )}
             <button
               type="button"
-              className="w-full rounded px-3 py-1.5 text-left text-sm text-accent hover:bg-cream"
+              className="w-full rounded px-3 py-1.5 text-left text-sm text-brand hover:bg-cream"
               onClick={() => {
                 setMenu(false);
                 if (confirm(`${productLabel(p.product)} poliçesi ve alarmları silinsin mi? Bu geri alınamaz.`)) start(() => deletePolicy(p.id));
@@ -174,7 +174,7 @@ export function PolicyDialog({
         </div>
         <div className="flex items-center justify-end gap-2">
           {state?.error && (
-            <span role="alert" className="mr-auto text-sm text-accent">
+            <span role="alert" className="mr-auto text-sm text-brand">
               {state.error}
             </span>
           )}

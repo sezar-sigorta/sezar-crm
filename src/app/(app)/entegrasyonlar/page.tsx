@@ -65,7 +65,7 @@ export default async function Entegrasyonlar() {
                   {r.status === "processed" ? (
                     <span className="chip border-emerald-200 bg-emerald-50 text-emerald-800">İşlendi</span>
                   ) : r.status === "failed" ? (
-                    <span className="chip border-orange-200 bg-orange-50 text-accent">Hata</span>
+                    <span className="chip border-orange-200 bg-orange-50 text-brand">Hata</span>
                   ) : (
                     <span className="chip border-line text-ink-2">Bekliyor</span>
                   )}
@@ -99,7 +99,7 @@ function Head({ name, ok, need }: { name: string; ok: boolean; need: string }) {
       {ok ? (
         <span className="chip border-emerald-200 bg-emerald-50 text-emerald-800">Ayarlı</span>
       ) : (
-        <span className="chip border-orange-200 bg-orange-50 text-accent" title={`Eksik: ${need}`}>
+        <span className="chip border-orange-200 bg-orange-50 text-brand" title={`Eksik: ${need}`}>
           Ayarlanmadı
         </span>
       )}

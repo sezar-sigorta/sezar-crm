@@ -148,7 +148,7 @@ export function NewContactForm({ mode }: { mode: "lead" | "customer" }) {
       </div>
       <div className="flex items-center justify-end gap-3 sm:col-span-2">
         {state?.error && (
-          <span role="alert" className="text-sm text-accent">
+          <span role="alert" className="text-sm text-brand">
             {state.error}
           </span>
         )}

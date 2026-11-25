@@ -58,7 +58,7 @@ function Row({ contactId, s }: { contactId: string; s: Suggestion }) {
             {productLabel(s.product)}
             {s.priority && (
               <span
-                className={`chip ${s.priority === "yüksek" ? "border-orange-200 bg-orange-50 text-accent" : s.priority === "orta" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-line text-ink-2"}`}
+                className={`chip ${s.priority === "yüksek" ? "border-orange-200 bg-orange-50 text-brand" : s.priority === "orta" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-line text-ink-2"}`}
               >
                 {s.priority}
               </span>
@@ -83,7 +83,7 @@ function Row({ contactId, s }: { contactId: string; s: Suggestion }) {
         )}
       </div>
       {result && (
-        <p role="status" className={`mt-1.5 rounded-md px-2.5 py-1.5 text-xs ${result.ok ? "bg-emerald-50 text-emerald-800" : "bg-orange-50 text-accent"}`}>
+        <p role="status" className={`mt-1.5 rounded-md px-2.5 py-1.5 text-xs ${result.ok ? "bg-emerald-50 text-emerald-800" : "bg-orange-50 text-brand"}`}>
           {result.ok ? (
             <>
               ✓ {productLabel(s.product)} talebi açıldı: profilde "Açık talepler" altında ve{" "}

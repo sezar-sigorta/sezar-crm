@@ -103,7 +103,7 @@ export function DocumentsPanel({
         />
       </label>
       {error && (
-        <p role="alert" className="mx-4 -mt-2 mb-3 text-sm text-accent">
+        <p role="alert" className="mx-4 -mt-2 mb-3 text-sm text-brand">
           {error}
         </p>
       )}
@@ -166,7 +166,7 @@ function DocRow({ d, policy, aiEnabled, onRead }: { d: Document; policy?: Policy
           {kb(d.size)} · {ago(d.createdAt)}
           {policy && <span className="ml-1 text-emerald-700">· {productLabel(policy.product)} poliçesine bağlı</span>}
         </div>
-        {err && <div className="text-xs text-accent">{err}</div>}
+        {err && <div className="text-xs text-brand">{err}</div>}
       </div>
       <div className="flex shrink-0 gap-1">
         {!policy && (
@@ -192,7 +192,7 @@ function DocRow({ d, policy, aiEnabled, onRead }: { d: Document; policy?: Policy
         </a>
         <button
           type="button"
-          className="btn-ghost px-2 py-1 text-xs text-accent"
+          className="btn-ghost px-2 py-1 text-xs text-brand"
           aria-label={`${d.fileName} sil`}
           onClick={() => {
             if (confirm(`"${d.fileName}" silinsin mi? Bu geri alınamaz.`)) start(() => deleteDocument(d.id));

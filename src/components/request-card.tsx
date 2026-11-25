@@ -49,7 +49,7 @@ export function RequestCard({ r, team }: { r: Request; team: { id: string; name:
             title="Ürünü değiştir"
             onChange={(e) => start(() => setRequestProduct(r.id, e.target.value))}
             className={`-ml-1 cursor-pointer rounded-md bg-transparent px-1 py-0.5 font-display text-base font-semibold hover:bg-cream ${
-              r.product === "genel" ? "text-accent ring-1 ring-accent/40" : "text-navy"
+              r.product === "genel" ? "text-brand ring-1 ring-brand/40" : "text-navy"
             }`}
           >
             {PRODUCTS.map((p) => (
@@ -150,7 +150,7 @@ export function RequestCard({ r, team }: { r: Request; team: { id: string; name:
               {r.stage === "won" ? "Kazanıldı" : `Kaybedildi: ${r.lostReason ?? "—"}`} · {fmtDateTime(r.closedAt)}
             </p>
           )}
-          {err && <p className="text-sm text-accent">{err}</p>}
+          {err && <p className="text-sm text-brand">{err}</p>}
         </div>
       </div>
       {lost && (

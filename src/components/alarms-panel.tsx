@@ -62,7 +62,7 @@ function AlarmRow({ r, overdue }: { r: Reminder; overdue: boolean }) {
   const [pending, start] = useTransition();
   const isDone = !!r.doneAt;
   return (
-    <li className={`flex items-start gap-2.5 rounded-lg border px-3 py-2 ${overdue ? "border-accent/40 bg-orange-50/60" : "border-line"} ${pending ? "opacity-60" : ""}`}>
+    <li className={`flex items-start gap-2.5 rounded-lg border px-3 py-2 ${overdue ? "border-brand/40 bg-orange-50/60" : "border-line"} ${pending ? "opacity-60" : ""}`}>
       <input
         type="checkbox"
         checked={isDone}
@@ -72,7 +72,7 @@ function AlarmRow({ r, overdue }: { r: Reminder; overdue: boolean }) {
       />
       <div className="min-w-0 flex-1">
         <p className={`text-sm leading-snug break-words ${isDone ? "text-ink-2 line-through" : ""}`}>{r.title}</p>
-        <p className={`mt-0.5 text-xs ${overdue ? "font-semibold text-accent" : "text-ink-2"}`}>
+        <p className={`mt-0.5 text-xs ${overdue ? "font-semibold text-brand" : "text-ink-2"}`}>
           {r.kind === "renewal" && "🔁 "}
           {fmtDateTime(r.dueAt)} · {isDone ? `tamamlandı ${ago(r.doneAt)}` : overdue ? `gecikti, ${ago(r.dueAt)}` : ago(r.dueAt)}
         </p>
@@ -146,7 +146,7 @@ function AddAlarm({ contactId, links, onDone, canCancel }: { contactId: string; 
         </select>
       )}
       <div className="flex items-center justify-end gap-2">
-        {state?.error && <span className="mr-auto text-xs text-accent">{state.error}</span>}
+        {state?.error && <span className="mr-auto text-xs text-brand">{state.error}</span>}
         {canCancel && (
           <button type="button" className="btn-ghost py-1.5" onClick={onDone}>
             Vazgeç

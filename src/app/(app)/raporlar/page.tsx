@@ -132,7 +132,7 @@ export default async function Raporlar({ searchParams }: { searchParams: Promise
                     </div>
                   </td>
                   <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">{r.avgFirstResponseMin == null ? "—" : fmtMinutes(r.avgFirstResponseMin)}</td>
-                  <td className={`px-3 py-2.5 text-right tabular-nums ${r.waiting ? "font-medium text-accent" : "text-ink-2"}`}>{r.waiting || "—"}</td>
+                  <td className={`px-3 py-2.5 text-right tabular-nums ${r.waiting ? "font-medium text-brand" : "text-ink-2"}`}>{r.waiting || "—"}</td>
                   <td className="px-4 py-2.5 text-xs text-ink-2">{r.topLostReason ? `${r.topLostReason} (${r.lost} kayıp)` : "—"}</td>
                 </tr>
               );

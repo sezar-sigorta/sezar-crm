@@ -61,7 +61,7 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
   return (
     <>
       {error && (
-        <p role="alert" className="mb-3 rounded-lg border border-accent/30 bg-orange-50 px-3 py-2 text-sm text-accent">
+        <p role="alert" className="mb-3 rounded-lg border border-brand/30 bg-orange-50 px-3 py-2 text-sm text-brand">
           {error}
         </p>
       )}
@@ -90,7 +90,7 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
               const originSub = r.source === "meta" ? (d.ad || d.adset ? d.campaign : formLabel(d.form)) : d.page;
               return (
                 <tr key={r.id} className={r.id === selected ? "bg-navy-l/25" : "hover:bg-cream-l"}>
-                  <td className={`px-4 py-2.5 whitespace-nowrap tabular-nums ${late ? "font-semibold text-accent" : "text-ink-2"}`} title={fmtDateTime(r.createdAt)}>
+                  <td className={`px-4 py-2.5 whitespace-nowrap tabular-nums ${late ? "font-semibold text-brand" : "text-ink-2"}`} title={fmtDateTime(r.createdAt)}>
                     {ago(r.createdAt)}
                   </td>
                   <td className="px-3 py-2.5">
@@ -126,7 +126,7 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
                     <div className={`truncate ${r.source === "meta" ? "font-medium text-[#5b3a9b]" : "text-ink-2"}`}>{origin ?? "—"}</div>
                     {originSub && <div className="truncate text-xs text-ink-2">{originSub}</div>}
                   </td>
-                  <td className={`px-3 py-2.5 ${r.product === "genel" ? "text-accent" : ""}`}>{productLabel(r.product)}</td>
+                  <td className={`px-3 py-2.5 ${r.product === "genel" ? "text-brand" : ""}`}>{productLabel(r.product)}</td>
                   <td className="px-3 py-2.5">
                     <label className="sr-only" htmlFor={`tas-${r.id}`}>
                       Atanan kişi
@@ -140,7 +140,7 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
                       ))}
                     </select>
                   </td>
-                  <td className={`px-4 py-2.5 text-xs whitespace-nowrap ${due ? "font-semibold text-accent" : "text-ink-2"}`}>
+                  <td className={`px-4 py-2.5 text-xs whitespace-nowrap ${due ? "font-semibold text-brand" : "text-ink-2"}`}>
                     {r.nextAlarmAt ? `⏰ ${fmtDateTime(r.nextAlarmAt)}` : "—"}
                   </td>
                 </tr>

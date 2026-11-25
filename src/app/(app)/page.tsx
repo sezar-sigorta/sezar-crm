@@ -43,7 +43,7 @@ export default async function Dashboard() {
                 return (
                   <li key={r.id}>
                     <Link href={`/kisiler/${r.contactId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-cream-l">
-                      <span className={`size-2 shrink-0 rounded-full ${overdue ? "bg-accent animate-pulse" : "bg-amber-400"}`} aria-hidden />
+                      <span className={`size-2 shrink-0 rounded-full ${overdue ? "bg-brand animate-pulse" : "bg-amber-400"}`} aria-hidden />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{r.fullName}</div>
                         <div className="text-xs text-ink-2">
@@ -55,7 +55,7 @@ export default async function Dashboard() {
                         <ProductChip code={r.product} />
                         <SourceChip code={r.source} detail={r.sourceDetail} />
                       </div>
-                      <span className={`w-20 text-right text-xs ${overdue ? "font-semibold text-accent" : "text-ink-2"}`}>{ago(r.createdAt, d.now)}</span>
+                      <span className={`w-20 text-right text-xs ${overdue ? "font-semibold text-brand" : "text-ink-2"}`}>{ago(r.createdAt, d.now)}</span>
                     </Link>
                   </li>
                 );
@@ -171,10 +171,10 @@ export default async function Dashboard() {
 
 function Stat({ label, value, hint, alert }: { label: string; value: number | string; hint?: string; alert?: string }) {
   return (
-    <div className={`card px-4 py-3.5 ${alert ? "border-accent/40" : ""}`}>
+    <div className={`card px-4 py-3.5 ${alert ? "border-brand/40" : ""}`}>
       <div className="text-xs text-ink-2">{label}</div>
       <div className="mt-1 font-display text-3xl font-semibold tabular-nums text-navy">{value}</div>
-      {alert ? <div className="mt-0.5 text-xs font-medium text-accent">{alert}</div> : hint && <div className="mt-0.5 text-xs text-ink-2">{hint}</div>}
+      {alert ? <div className="mt-0.5 text-xs font-medium text-brand">{alert}</div> : hint && <div className="mt-0.5 text-xs text-ink-2">{hint}</div>}
     </div>
   );
 }

@@ -189,7 +189,7 @@ function NoteForm({ contactId, ownProducts }: { contactId: string; ownProducts: 
 
       <div className="flex items-center justify-end gap-3">
         {state?.error && (
-          <span role="alert" className="mr-auto text-sm text-accent">
+          <span role="alert" className="mr-auto text-sm text-brand">
             {state.error}
           </span>
         )}

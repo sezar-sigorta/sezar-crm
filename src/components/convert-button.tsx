@@ -24,7 +24,7 @@ export function ConvertButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={size === "sm" ? "btn-ghost px-2.5 py-1 text-xs whitespace-nowrap" : "btn-accent"}
+        className={size === "sm" ? "btn-ghost px-2.5 py-1 text-xs whitespace-nowrap" : "btn-brand"}
       >
         Müşteriye dönüştür
       </button>
@@ -48,7 +48,7 @@ function ConvertDialog({ contactId, name, defaultProduct, onClose }: { contactId
         {withPolicy && <PolicyFields defaultProduct={defaultProduct} idPrefix={`cv-${contactId.slice(0, 6)}`} />}
         <div className="flex items-center justify-end gap-2">
           {state?.error && (
-            <span role="alert" className="mr-auto text-sm text-accent">
+            <span role="alert" className="mr-auto text-sm text-brand">
               {state.error}
             </span>
           )}

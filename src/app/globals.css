@@ -1,6 +1,12 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* Sezar Sigorta brand: navy + cream (same tokens as sezarsigorta.com). */
+@custom-variant dark (&:is(.dark *));
+
+/* Sezar Sigorta brand: navy + cream (same tokens as sezarsigorta.com).
+   The Sezar orange is `brand` (bg-brand, text-brand…). shadcn's own `accent`
+   token is the cream hover surface used inside menus, selects and the sidebar. */
 @theme {
   --color-navy: #14213d;
   --color-navy-2: #1e2c4e;
@@ -13,33 +19,110 @@
   --color-line: #dcd2c0;
   --color-ink: #14213d;
   --color-ink-2: #5b6a8f;
-  --color-accent: #c2410c;
-  --color-accent-l: #f08a5d;
+  --color-brand: #c2410c;
+  --color-brand-l: #f08a5d;
+  --color-wa: #1f9d55;
   --font-sans: var(--font-inter), "Segoe UI", system-ui, sans-serif;
   --font-display: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
-  --radius-card: 12px;
 }
 
-html,
-body {
-  background: var(--color-cream-l);
-  color: var(--color-ink);
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-body {
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+:root {
+  --radius: 0.625rem;
+  --background: #fbf8f2; /* cream-l */
+  --foreground: #14213d; /* navy */
+  --card: #ffffff;
+  --card-foreground: #14213d;
+  --popover: #ffffff;
+  --popover-foreground: #14213d;
+  --primary: #14213d; /* navy */
+  --primary-foreground: #f4ede0; /* cream */
+  --secondary: #f4ede0; /* cream */
+  --secondary-foreground: #14213d;
+  --muted: #f4ede0;
+  --muted-foreground: #5b6a8f; /* navy-m */
+  --accent: #f4ede0; /* cream hover, NOT the Sezar orange (that is --color-brand) */
+  --accent-foreground: #14213d;
+  --destructive: #c2410c; /* Sezar orange doubles as the risk colour */
+  --border: #dcd2c0; /* line */
+  --input: #dcd2c0;
+  --ring: #5b6a8f;
+  --chart-1: #14213d;
+  --chart-2: #c2410c;
+  --chart-3: #5b6a8f;
+  --chart-4: #f08a5d;
+  --chart-5: #c5cee3;
+  --sidebar: #14213d;
+  --sidebar-foreground: #c5cee3;
+  --sidebar-primary: #f4ede0;
+  --sidebar-primary-foreground: #14213d;
+  --sidebar-accent: #26375f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #26375f;
+  --sidebar-ring: #5b6a8f;
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  letter-spacing: -0.01em;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
 }
 
+/* Legacy utilities — removed once every page uses shadcn components. */
 @utility card {
-  @apply rounded-[var(--radius-card)] border border-line bg-white;
+  @apply rounded-xl border border-line bg-white;
 }
 @utility btn {
   @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-default disabled:opacity-50;
@@ -50,11 +133,11 @@ h3 {
 @utility btn-ghost {
   @apply btn border border-line bg-white text-navy hover:bg-cream;
 }
-@utility btn-accent {
-  @apply btn bg-accent text-white hover:bg-[#a8380a];
+@utility btn-brand {
+  @apply btn bg-brand text-white hover:bg-[#a8380a];
 }
 @utility btn-wa {
-  @apply btn bg-[#1f9d55] text-white hover:bg-[#188046];
+  @apply btn bg-wa text-white hover:bg-[#188046];
 }
 @utility input {
   @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-navy outline-none placeholder:text-navy-m/60 focus:border-navy-m focus:ring-2 focus:ring-navy-l/60;
@@ -64,9 +147,4 @@ h3 {
 }
 @utility chip {
   @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-navy-m);
-  outline-offset: 2px;
 }

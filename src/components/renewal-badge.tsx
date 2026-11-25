@@ -8,7 +8,7 @@ export function RenewalBadge({ ymd }: { ymd: string | null }) {
     d < 0
       ? "border-red-200 bg-red-50 text-red-700"
       : d <= 7
-        ? "border-orange-200 bg-orange-50 text-accent"
+        ? "border-orange-200 bg-orange-50 text-brand"
         : d <= 30
           ? "border-amber-200 bg-amber-50 text-amber-800"
           : "border-line bg-white text-ink-2";

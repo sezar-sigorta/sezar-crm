@@ -147,7 +147,7 @@ function Stat({ label, value, hint, warn }: { label: string; value: number | str
     <div className="card px-4 py-3">
       <dt className="text-xs text-ink-2">{label}</dt>
       <dd className="mt-0.5 font-display text-2xl font-semibold tabular-nums text-navy">{value}</dd>
-      {hint && <dd className={`text-xs ${warn ? "font-semibold text-accent" : "text-ink-2"}`}>{hint}</dd>}
+      {hint && <dd className={`text-xs ${warn ? "font-semibold text-brand" : "text-ink-2"}`}>{hint}</dd>}
     </div>
   );
 }

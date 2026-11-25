@@ -86,7 +86,7 @@ export default async function Musteriler({ searchParams }: { searchParams: Promi
                     {(c.products ?? []).map((p) => (
                       <ProductChip key={p} code={p} />
                     ))}
-                    {!c.activeCount && <span className="text-xs text-accent">Poliçe girilmemiş</span>}
+                    {!c.activeCount && <span className="text-xs text-brand">Poliçe girilmemiş</span>}
                   </div>
                 </td>
                 <td className="px-3 py-2.5 whitespace-nowrap">
@@ -98,7 +98,7 @@ export default async function Musteriler({ searchParams }: { searchParams: Promi
                     "—"
                   )}
                 </td>
-                <td className={`px-4 py-2.5 text-xs whitespace-nowrap ${c.nextAlarmAt && c.nextAlarmAt < now ? "font-semibold text-accent" : "text-ink-2"}`}>
+                <td className={`px-4 py-2.5 text-xs whitespace-nowrap ${c.nextAlarmAt && c.nextAlarmAt < now ? "font-semibold text-brand" : "text-ink-2"}`}>
                   {c.nextAlarmAt ? `⏰ ${fmtDateTime(c.nextAlarmAt)}` : "—"}
                 </td>
               </tr>

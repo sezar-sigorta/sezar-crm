@@ -86,7 +86,7 @@ export default async function Leadler({ searchParams }: { searchParams: Promise<
                   </div>
                 </td>
                 <td className="px-3 py-2.5">{c.stage ? <StageChip code={c.stage} /> : "—"}</td>
-                <td className={`px-3 py-2.5 text-xs whitespace-nowrap ${c.nextAlarmAt && c.nextAlarmAt < now ? "font-semibold text-accent" : "text-ink-2"}`}>
+                <td className={`px-3 py-2.5 text-xs whitespace-nowrap ${c.nextAlarmAt && c.nextAlarmAt < now ? "font-semibold text-brand" : "text-ink-2"}`}>
                   {c.nextAlarmAt ? `⏰ ${fmtDateTime(c.nextAlarmAt)}` : "—"}
                 </td>
                 <td className="px-4 py-2.5 text-right">

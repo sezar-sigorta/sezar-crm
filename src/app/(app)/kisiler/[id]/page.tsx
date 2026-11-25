@@ -80,7 +80,7 @@ function Consents({ c }: { c: Detail["contact"] }) {
       <dl className="space-y-1.5">
         <div className="flex justify-between gap-3">
           <dt className="text-ink-2">Aydınlatma / iletişim onayı</dt>
-          <dd className={c.kvkkConsent ? "text-emerald-700" : "text-accent"}>{c.kvkkConsent ? `Var · ${fmtDateTime(c.kvkkConsentAt)}` : "Yok"}</dd>
+          <dd className={c.kvkkConsent ? "text-emerald-700" : "text-brand"}>{c.kvkkConsent ? `Var · ${fmtDateTime(c.kvkkConsentAt)}` : "Yok"}</dd>
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-ink-2">Ticari ileti (kampanya) izni</dt>

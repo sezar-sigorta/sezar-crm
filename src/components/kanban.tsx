@@ -84,7 +84,7 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
   return (
     <>
       {error && (
-        <p role="alert" className="mb-3 rounded-lg border border-accent/30 bg-orange-50 px-3 py-2 text-sm text-accent">
+        <p role="alert" className="mb-3 rounded-lg border border-brand/30 bg-orange-50 px-3 py-2 text-sm text-brand">
           {error}
         </p>
       )}
@@ -201,10 +201,10 @@ function Card({
       }}
       onDragEnd={() => onDrag(false)}
       className={`group relative cursor-grab rounded-lg border bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,33,61,0.06)] transition hover:border-navy-m/40 hover:shadow-md active:cursor-grabbing ${
-        late ? "border-accent/40" : "border-line"
+        late ? "border-brand/40" : "border-line"
       }`}
     >
-      {late && <span className="absolute inset-y-2 left-0 w-[3px] rounded-r bg-accent" aria-hidden="true" />}
+      {late && <span className="absolute inset-y-2 left-0 w-[3px] rounded-r bg-brand" aria-hidden="true" />}
 
       <div className="flex items-start gap-2.5">
         <span className="grid size-8 shrink-0 place-items-center rounded-full bg-cream text-[11px] font-semibold text-navy">{initials(r.fullName)}</span>
@@ -218,7 +218,7 @@ function Card({
             )}
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-2" title={origin || undefined}>
-            <span className={`truncate ${r.product === "genel" ? "font-medium text-accent" : "text-navy"}`}>
+            <span className={`truncate ${r.product === "genel" ? "font-medium text-brand" : "text-navy"}`}>
               {r.product === "genel" ? "Ürün seçilmedi" : productLabel(r.product)}
             </span>
             <span aria-hidden="true">·</span>
@@ -244,13 +244,13 @@ function Card({
       </div>
 
       <div className="mt-1.5 flex min-w-0 items-center gap-2 pl-[42px] text-[11px] whitespace-nowrap">
-        <span className={late ? "font-semibold text-accent" : "text-ink-2"} title={fmtDateTime(r.createdAt)}>
+        <span className={late ? "font-semibold text-brand" : "text-ink-2"} title={fmtDateTime(r.createdAt)}>
           {ago(r.createdAt, now)}
         </span>
         {alarm && alarmText && (
           <span
             title={`Hatırlatma: ${fmtDateTime(alarm)}`}
-            className={`inline-flex items-center gap-1 rounded-full px-1.5 py-px ${due ? "bg-orange-50 font-semibold text-accent ring-1 ring-accent/30" : "text-ink-2"}`}
+            className={`inline-flex items-center gap-1 rounded-full px-1.5 py-px ${due ? "bg-orange-50 font-semibold text-brand ring-1 ring-brand/30" : "text-ink-2"}`}
           >
             <BellIcon />
             {alarmText}

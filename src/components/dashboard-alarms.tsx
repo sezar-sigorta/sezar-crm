@@ -41,7 +41,7 @@ function Row({ a, overdue }: { a: Alarm; overdue: boolean }) {
           {a.title}
         </p>
       </div>
-      <span className={`w-24 shrink-0 text-right text-xs ${overdue ? "font-semibold text-accent" : "text-ink-2"}`}>
+      <span className={`w-24 shrink-0 text-right text-xs ${overdue ? "font-semibold text-brand" : "text-ink-2"}`}>
         {overdue ? `gecikti · ${ago(a.dueAt)}` : fmtDateTime(a.dueAt)}
       </span>
       <button type="button" className="shrink-0 rounded px-1.5 py-0.5 text-xs text-ink-2 hover:bg-cream" title="1 gün ertele" onClick={() => start(() => snoozeReminder(a.id, 24))}>

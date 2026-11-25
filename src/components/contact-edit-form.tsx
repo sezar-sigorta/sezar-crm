@@ -70,7 +70,7 @@ export function ContactEditForm({ c }: { c: Contact }) {
         Ticari ileti (kampanya) izni verdi
       </label>
       <div className="flex items-center justify-end gap-3">
-        {state?.error && <span className="text-xs text-accent">{state.error}</span>}
+        {state?.error && <span className="text-xs text-brand">{state.error}</span>}
         {state?.ok && <span className="text-xs text-emerald-700">Kaydedildi</span>}
         <button className="btn-primary" disabled={pending}>
           Kaydet

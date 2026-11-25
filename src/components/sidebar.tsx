@@ -42,7 +42,7 @@ export function Sidebar({ userName, newCount }: { userName: string; newCount: nu
             </svg>
             {n.label}
             {n.href === "/talepler" && newCount > 0 && (
-              <span className="ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white">{newCount}</span>
+              <span className="ml-auto rounded-full bg-brand px-1.5 text-[11px] font-semibold text-white">{newCount}</span>
             )}
           </Link>
         ))}

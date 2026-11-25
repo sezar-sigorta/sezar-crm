@@ -355,7 +355,7 @@ function Management({ r, team }: { r: Request; team: { id: string; name: string 
             defaultValue={r.product}
             disabled={pending}
             onChange={(e) => start(() => setRequestProduct(r.id, e.target.value))}
-            className={`input mt-1 ${r.product === "genel" ? "border-accent/50 text-accent" : ""}`}
+            className={`input mt-1 ${r.product === "genel" ? "border-brand/50 text-brand" : ""}`}
           >
             {PRODUCTS.map((p) => (
               <option key={p.code} value={p.code}>
@@ -379,7 +379,7 @@ function Management({ r, team }: { r: Request; team: { id: string; name: string 
         </label>
       </div>
       {r.stage === "lost" && r.lostReason && <p className="mt-2 text-sm text-ink-2">Kayıp nedeni: {r.lostReason}</p>}
-      {err && <p className="mt-2 text-sm text-accent">{err}</p>}
+      {err && <p className="mt-2 text-sm text-brand">{err}</p>}
       {lost && (
         <LostDialog
           onCancel={() => setLost(false)}
@@ -414,10 +414,10 @@ function Reminders({ contactId, requestId, product, alarms }: { contactId: strin
           {alarms.map((a) => {
             const due = new Date(a.dueAt) < new Date();
             return (
-              <li key={a.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${due ? "border-accent/40 bg-orange-50" : "border-line"}`}>
+              <li key={a.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${due ? "border-brand/40 bg-orange-50" : "border-line"}`}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{a.title}</span>
-                  <span className={`text-xs ${due ? "font-semibold text-accent" : "text-ink-2"}`}>
+                  <span className={`text-xs ${due ? "font-semibold text-brand" : "text-ink-2"}`}>
                     {a.kind === "renewal" ? "Yenileme · " : ""}
                     {fmtDateTime(a.dueAt)}
                   </span>
@@ -453,7 +453,7 @@ function Reminders({ contactId, requestId, product, alarms }: { contactId: strin
             Ne yapılacak?
             <input name="title" required maxLength={300} defaultValue={`${productLabel(product)} için tekrar ara`} className="input mt-1" />
           </label>
-          {state && "error" in state && <p className="text-sm text-accent">{state.error}</p>}
+          {state && "error" in state && <p className="text-sm text-brand">{state.error}</p>}
           <div className="flex justify-end">
             <button className="btn-primary py-1.5" disabled={pending}>
               Kaydet
@@ -490,7 +490,7 @@ function Notes({ contactId, product }: { contactId: string; product: string }) {
           {text.length}/{NOTE_MAX}
         </span>
       </div>
-      {state && "error" in state && <p className="mt-1 text-sm text-accent">{state.error}</p>}
+      {state && "error" in state && <p className="mt-1 text-sm text-brand">{state.error}</p>}
       <div className="mt-2 flex justify-end">
         <button className="btn-primary py-1.5" disabled={pending || !text.trim()}>
           Kaydet
