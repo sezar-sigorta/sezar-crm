@@ -1,12 +1,24 @@
 "use client";
 
+import { CheckIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { addReminder, assignRequest, logActivity, moveStage, setCallStatus, setContactTags, setReminderDone, setRequestProduct, updateQuote } from "@/app/(app)/actions";
 import type { Contact, Request } from "@/db/schema";
 import { PIPELINE_OPTIONS, PRODUCTS, STAGES, callStatus, formLabel, pipelineValue, productLabel, sourceLabel } from "@/lib/constants";
 import { fmtDate, fmtDateTime, toLocalInput } from "@/lib/format";
 import { formatPhone, whatsappLink } from "@/lib/phone";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { SourceChip, StageChip } from "./chips";
 import { useLeadHref } from "./lead-table";
 import { LostDialog } from "./lost-dialog";
@@ -32,13 +44,14 @@ export function LeadDrawer({ detail, team, closeHref }: { detail: Detail; team: 
   const d = r.sourceDetail ?? {};
   const answers = Object.entries(r.answers ?? {}).filter(([k]) => k !== "Form");
   const leadHref = useLeadHref();
-
-  // Close with Esc.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && document.getElementById("lead-drawer-close")?.click();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  const router = useRouter();
+  // The panel is URL-driven (?lead=…): closing it (Esc, overlay, × button) navigates to closeHref.
+  // `open` flips first so the close animation plays while the navigation happens.
+  const [open, setOpen] = useState(true);
+  const close = () => {
+    setOpen(false);
+    router.push(closeHref, { scroll: false });
+  };
 
   const sourceRows: [string, string | undefined][] = [
     ["Kanal", r.source === "meta" ? `Meta reklamı${d.platform ? ` · ${d.platform}` : ""}` : sourceLabel(r.source)],
@@ -50,174 +63,182 @@ export function LeadDrawer({ detail, team, closeHref }: { detail: Detail; team: 
   ];
 
   return (
-    <aside aria-label={`${c.fullName} lead detayı`} className="fixed inset-y-0 right-0 z-40 flex w-full max-w-[420px] flex-col bg-white shadow-2xl">
-      {/* 1. Başlık */}
-      <header className="border-b border-line px-5 pt-4 pb-3">
-        <div className="flex items-start gap-3">
-          <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-navy" title={c.fullName}>
-            {c.fullName}
-          </h2>
-          <Link id="lead-drawer-close" href={closeHref} scroll={false} className="-mr-1 grid size-8 place-items-center rounded-md text-navy hover:bg-cream" aria-label="Paneli kapat">
-            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </Link>
-        </div>
-        <nav className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#1d5fb8]">
-          <a href="#kaynak" className="hover:underline">
-            {r.source === "meta" ? "Reklamı gör" : "Kaynağı gör"}
-          </a>
-          <span className="text-line" aria-hidden="true">|</span>
-          <a href="#form" className="hover:underline">
-            Form yanıtlarını gör
-          </a>
-          <span className="text-line" aria-hidden="true">|</span>
-          <Link href={`/kisiler/${c.id}`} className="hover:underline">
-            Profili aç
-          </Link>
-        </nav>
-      </header>
-
-      <div className="flex-1 divide-y divide-line overflow-y-auto">
-        {/* 2. İletişim */}
-        <Section>
-          <a href={`tel:+90${c.phone}`} className="flex items-center gap-3 text-sm tabular-nums hover:underline">
-            <Icon d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z" />
-            {formatPhone(c.phone)}
-          </a>
-          <div className="mt-2 flex items-center gap-3 text-sm">
-            <Icon d="M4 4h16v16H4zM4 6l8 7 8-7" />
-            {c.email ? (
-              <a href={`mailto:${c.email}`} className="truncate text-[#1d5fb8] hover:underline">
-                {c.email}
-              </a>
-            ) : (
-              <span className="text-ink-2">E-posta yok</span>
-            )}
+    <Sheet open={open} onOpenChange={(o) => !o && close()}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
+      >
+        {/* 1. Başlık */}
+        <SheetHeader className="px-5 pt-4 pb-3">
+          <div className="flex items-start gap-3">
+            <SheetTitle className="min-w-0 flex-1 truncate font-display text-lg font-semibold text-navy" title={c.fullName}>
+              {c.fullName}
+            </SheetTitle>
+            <SheetClose asChild>
+              <Button variant="ghost" size="icon-sm" className="-mr-1 text-navy" aria-label="Paneli kapat">
+                <XIcon />
+              </Button>
+            </SheetClose>
           </div>
-          <div className="mt-2 flex items-center gap-3 text-sm">
-            <Icon d="M21 11.5a8.4 8.4 0 01-12.3 7.4L3 21l2-5.4A8.4 8.4 0 1121 11.5z" />
-            <a href={whatsappLink(c.phone)} target="_blank" rel="noreferrer" className="text-[#1f9d55] hover:underline">
-              WhatsApp&apos;tan yaz
+          <SheetDescription className="sr-only">{c.fullName} lead detayı</SheetDescription>
+          <nav className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#1d5fb8]">
+            <a href="#kaynak" className="hover:underline">
+              {r.source === "meta" ? "Reklamı gör" : "Kaynağı gör"}
             </a>
-          </div>
-          <Link href={`/kisiler/${c.id}`} className="mt-3 inline-block text-sm text-[#1d5fb8] hover:underline">
-            İletişim bilgilerini düzenle
-          </Link>
-        </Section>
+            <Separator orientation="vertical" className="h-4" />
+            <a href="#form" className="hover:underline">
+              Form yanıtlarını gör
+            </a>
+            <Separator orientation="vertical" className="h-4" />
+            <Link href={`/kisiler/${c.id}`} className="hover:underline">
+              Profili aç
+            </Link>
+          </nav>
+        </SheetHeader>
+        <Separator />
 
-        {/* 3. Etiketler */}
-        <Section>
-          <p className="mb-2 text-xs text-ink-2">Etiketler potansiyel müşterilerinizi tanımlamanıza ve organize etmenize yardımcı olur.</p>
-          <h3 className="mb-1.5 text-sm font-semibold">Bir etiket ekle</h3>
-          <Tags key={c.id} contactId={c.id} initial={c.tags ?? []} suggestions={allTags} />
-        </Section>
+        <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto overscroll-contain">
+          {/* 2. İletişim */}
+          <Section>
+            <a href={`tel:+90${c.phone}`} className="flex items-center gap-3 text-sm tabular-nums hover:underline">
+              <Icon d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z" />
+              {formatPhone(c.phone)}
+            </a>
+            <div className="mt-2 flex items-center gap-3 text-sm">
+              <Icon d="M4 4h16v16H4zM4 6l8 7 8-7" />
+              {c.email ? (
+                <a href={`mailto:${c.email}`} className="truncate text-[#1d5fb8] hover:underline">
+                  {c.email}
+                </a>
+              ) : (
+                <span className="text-muted-foreground">E-posta yok</span>
+              )}
+            </div>
+            <div className="mt-2 flex items-center gap-3 text-sm">
+              <Icon d="M21 11.5a8.4 8.4 0 01-12.3 7.4L3 21l2-5.4A8.4 8.4 0 1121 11.5z" />
+              <a href={whatsappLink(c.phone)} target="_blank" rel="noreferrer" className="text-wa hover:underline">
+                WhatsApp&apos;tan yaz
+              </a>
+            </div>
+            <Link href={`/kisiler/${c.id}`} className="mt-3 inline-block text-sm text-[#1d5fb8] hover:underline">
+              İletişim bilgilerini düzenle
+            </Link>
+          </Section>
 
-        {/* 4. Bilgi yönetimi */}
-        <Section title="Potansiyel müşteri bilgileri yönetimi">
-          <p className="-mt-1 mb-3 text-xs text-ink-2">
-            {fmtDateTime(r.createdAt)} tarihinde geldi · {r.segment === "kurumsal" ? "Kurumsal" : "Bireysel"}
-            {c.lifecycle === "customer" && " · Mevcut müşteri"}
-          </p>
-          <Management key={r.id} r={r} team={team} />
-        </Section>
+          {/* 3. Etiketler */}
+          <Section>
+            <p className="mb-2 text-xs text-muted-foreground">Etiketler potansiyel müşterilerinizi tanımlamanıza ve organize etmenize yardımcı olur.</p>
+            <h3 className="mb-1.5 text-sm font-semibold">Bir etiket ekle</h3>
+            <Tags key={c.id} contactId={c.id} initial={c.tags ?? []} suggestions={allTags} />
+          </Section>
 
-        {/* 5. Hatırlatma */}
-        <Section title="Hatırlatma">
-          <Reminders key={r.id} contactId={c.id} requestId={r.id} product={r.product} alarms={alarms} />
-        </Section>
+          {/* 4. Bilgi yönetimi */}
+          <Section title="Potansiyel müşteri bilgileri yönetimi">
+            <p className="-mt-1 mb-3 text-xs text-muted-foreground">
+              {fmtDateTime(r.createdAt)} tarihinde geldi · {r.segment === "kurumsal" ? "Kurumsal" : "Bireysel"}
+              {c.lifecycle === "customer" && " · Mevcut müşteri"}
+            </p>
+            <Management key={r.id} r={r} team={team} />
+          </Section>
 
-        {/* 6. Notlar */}
-        <Section title="Notlar">
-          <p className="-mt-1 mb-2 text-xs text-ink-2">Notlar, potansiyel müşterilerinizle ilgili önemli bilgileri hatırlamanıza yardımcı olur.</p>
-          <Notes key={r.id} contactId={c.id} product={r.product} />
-          {notes.length > 0 && (
-            <ul className="mt-3 space-y-2">
-              {notes.map((n) => (
-                <li key={n.id} className="rounded-lg bg-cream-l px-3 py-2 text-sm">
-                  <p className="whitespace-pre-wrap break-words">{n.body}</p>
-                  <p className="mt-1 text-[11px] text-ink-2">
-                    {n.type === "call" ? "Arama · " : ""}
-                    {n.userName ?? "Sistem"} · {fmtDateTime(n.createdAt)}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
+          {/* 5. Hatırlatma */}
+          <Section title="Hatırlatma">
+            <Reminders key={r.id} contactId={c.id} requestId={r.id} product={r.product} alarms={alarms} />
+          </Section>
 
-        {/* 7. Kaynak */}
-        <Section id="kaynak" title={r.source === "meta" ? "Reklam" : "Kaynak"}>
-          <dl className="space-y-1.5 text-sm">
-            {sourceRows.map(([k, v]) => (
-              <Row key={k} k={k} v={v} />
-            ))}
-          </dl>
-        </Section>
-
-        {/* 8. Form cevapları */}
-        <Section id="form" title="Form cevapları">
-          <p className="mb-3 text-sm">
-            {d.form_id && (
-              <>
-                Potansiyel müşteri formu kodu
-                <br />
-                <span className="tabular-nums">{d.form_id}</span>
-                <br />
-              </>
+          {/* 6. Notlar */}
+          <Section title="Notlar">
+            <p className="-mt-1 mb-2 text-xs text-muted-foreground">Notlar, potansiyel müşterilerinizle ilgili önemli bilgileri hatırlamanıza yardımcı olur.</p>
+            <Notes key={r.id} contactId={c.id} product={r.product} />
+            {notes.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {notes.map((n) => (
+                  <li key={n.id} className="rounded-lg bg-secondary/60 px-3 py-2 text-sm">
+                    <p className="whitespace-pre-wrap break-words">{n.body}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {n.type === "call" ? "Arama · " : ""}
+                      {n.userName ?? "Sistem"} · {fmtDateTime(n.createdAt)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             )}
-            Gönderim tarihi: {fmtDateTime(r.createdAt)}
-          </p>
-          <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="text-ink-2">Ad soyad</dt>
-              <dd className="font-semibold">{c.fullName}</dd>
-            </div>
-            <div>
-              <dt className="text-ink-2">Telefon</dt>
-              <dd className="font-semibold tabular-nums">{formatPhone(c.phone)}</dd>
-            </div>
-            <div>
-              <dt className="text-ink-2">E-posta</dt>
-              <dd className="font-semibold break-all">{c.email ?? "—"}</dd>
-            </div>
-            {answers.map(([k, v]) => (
-              <div key={k}>
-                <dt className="text-ink-2">{k}</dt>
-                <dd className="font-semibold break-words">{v}</dd>
-              </div>
-            ))}
-            <div>
-              <dt className="text-ink-2">KVKK onayı</dt>
-              <dd className="font-semibold">{c.kvkkConsent ? `Var · ${fmtDate(c.kvkkConsentAt)}` : "Yok"}</dd>
-            </div>
-            <div>
-              <dt className="text-ink-2">Ticari ileti izni</dt>
-              <dd className="font-semibold">{c.marketingConsent ? `Var · ${fmtDate(c.marketingConsentAt)}` : "Yok"}</dd>
-            </div>
-          </dl>
-        </Section>
+          </Section>
 
-        {/* 9. Diğer talepler */}
-        <Section title="Bu kişinin diğer talepleri">
-          {others.length ? (
-            <ul className="divide-y divide-line rounded-lg border border-line text-sm">
-              {others.map((o) => (
-                <li key={o.id}>
-                  <Link href={leadHref(o.id)} scroll={false} className="flex items-center gap-2 px-3 py-2 hover:bg-cream-l">
-                    <span className="min-w-0 flex-1 truncate font-medium">{productLabel(o.product)}</span>
-                    <SourceChip code={o.source} />
-                    <StageChip code={o.stage} />
-                  </Link>
-                </li>
+          {/* 7. Kaynak */}
+          <Section id="kaynak" title={r.source === "meta" ? "Reklam" : "Kaynak"}>
+            <dl className="space-y-1.5 text-sm">
+              {sourceRows.map(([k, v]) => (
+                <Row key={k} k={k} v={v} />
               ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-ink-2">Başka talep yok.</p>
-          )}
-        </Section>
-      </div>
-    </aside>
+            </dl>
+          </Section>
+
+          {/* 8. Form cevapları */}
+          <Section id="form" title="Form cevapları">
+            <p className="mb-3 text-sm">
+              {d.form_id && (
+                <>
+                  Potansiyel müşteri formu kodu
+                  <br />
+                  <span className="tabular-nums">{d.form_id}</span>
+                  <br />
+                </>
+              )}
+              Gönderim tarihi: {fmtDateTime(r.createdAt)}
+            </p>
+            <dl className="space-y-3 text-sm">
+              <div>
+                <dt className="text-muted-foreground">Ad soyad</dt>
+                <dd className="font-semibold">{c.fullName}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Telefon</dt>
+                <dd className="font-semibold tabular-nums">{formatPhone(c.phone)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">E-posta</dt>
+                <dd className="font-semibold break-all">{c.email ?? "—"}</dd>
+              </div>
+              {answers.map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-muted-foreground">{k}</dt>
+                  <dd className="font-semibold break-words">{v}</dd>
+                </div>
+              ))}
+              <div>
+                <dt className="text-muted-foreground">KVKK onayı</dt>
+                <dd className="font-semibold">{c.kvkkConsent ? `Var · ${fmtDate(c.kvkkConsentAt)}` : "Yok"}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Ticari ileti izni</dt>
+                <dd className="font-semibold">{c.marketingConsent ? `Var · ${fmtDate(c.marketingConsentAt)}` : "Yok"}</dd>
+              </div>
+            </dl>
+          </Section>
+
+          {/* 9. Diğer talepler */}
+          <Section title="Bu kişinin diğer talepleri">
+            {others.length ? (
+              <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+                {others.map((o) => (
+                  <li key={o.id}>
+                    <Link href={leadHref(o.id)} scroll={false} className="flex items-center gap-2 px-3 py-2 hover:bg-secondary/60">
+                      <span className="min-w-0 flex-1 truncate font-medium">{productLabel(o.product)}</span>
+                      <SourceChip code={o.source} />
+                      <StageChip code={o.stage} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Başka talep yok.</p>
+            )}
+          </Section>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -233,8 +254,8 @@ function Section({ title, id, children }: { title?: string; id?: string; childre
 function Row({ k, v }: { k: string; v?: string | null }) {
   return (
     <div className="grid grid-cols-[100px_1fr] gap-2">
-      <dt className="text-ink-2">{k}</dt>
-      <dd className={`break-words ${v ? "" : "text-ink-2"}`}>{v || "—"}</dd>
+      <dt className="text-muted-foreground">{k}</dt>
+      <dd className={cn("break-words", !v && "text-muted-foreground")}>{v || "—"}</dd>
     </div>
   );
 }
@@ -263,11 +284,8 @@ function Tags({ contactId, initial, suggestions }: { contactId: string; initial:
   return (
     <>
       <div className="relative">
-        <svg viewBox="0 0 24 24" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-2" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" />
-          <path d="M20 20l-3.5-3.5" />
-        </svg>
-        <input
+        <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
@@ -280,7 +298,7 @@ function Tags({ contactId, initial, suggestions }: { contactId: string; initial:
           maxLength={40}
           placeholder="Bir etiket ara veya oluştur"
           aria-label="Etiket ekle"
-          className="input pl-9"
+          className="h-9 pl-8"
         />
         <datalist id={`tags-${contactId}`}>
           {suggestions
@@ -293,16 +311,37 @@ function Tags({ contactId, initial, suggestions }: { contactId: string; initial:
       {tags.length > 0 && (
         <ul className="mt-2 flex flex-wrap gap-1.5">
           {tags.map((t) => (
-            <li key={t} className="chip border-navy-l bg-[#eef1f8] text-navy">
-              {t}
-              <button type="button" onClick={() => save(tags.filter((x) => x !== t))} aria-label={`${t} etiketini kaldır`} className="-mr-0.5 cursor-pointer text-navy-m hover:text-navy">
-                ×
-              </button>
+            <li key={t}>
+              <Badge variant="outline" className="h-6 gap-0.5 border-navy-l bg-[#eef1f8] pr-0.5 text-navy">
+                {t}
+                <button
+                  type="button"
+                  onClick={() => save(tags.filter((x) => x !== t))}
+                  aria-label={`${t} etiketini kaldır`}
+                  className="grid size-4 cursor-pointer place-items-center rounded-full text-navy-m hover:bg-navy-l/40 hover:text-navy"
+                >
+                  <XIcon className="size-3" aria-hidden="true" />
+                </button>
+              </Badge>
             </li>
           ))}
         </ul>
       )}
     </>
+  );
+}
+
+/** Radix Select can't hold "", so "Atanmamış" uses this value in the UI and "" towards the server. */
+const NOBODY = "none";
+
+function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid min-w-0 gap-1.5">
+      <Label htmlFor={id} className="text-xs text-muted-foreground">
+        {label}
+      </Label>
+      {children}
+    </div>
   );
 }
 
@@ -327,46 +366,53 @@ function Management({ r, team }: { r: Request; team: { id: string; name: string 
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="label">
-          Atanan kişi
-          <select defaultValue={r.assignedTo ?? ""} disabled={pending} onChange={(e) => start(() => assignRequest(r.id, e.target.value))} className="input mt-1">
-            <option value="">Atanmamış</option>
-            {team.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="label">
-          Aşama
-          <select value={stage} disabled={pending} onChange={(e) => changeStage(e.target.value)} className={`input mt-1 ${tone ?? ""}`}>
-            {PIPELINE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="label">
-          Ürün
-          <select
-            defaultValue={r.product}
-            disabled={pending}
-            onChange={(e) => start(() => setRequestProduct(r.id, e.target.value))}
-            className={`input mt-1 ${r.product === "genel" ? "border-brand/50 text-brand" : ""}`}
-          >
-            {PRODUCTS.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.code === "genel" ? "Ürün seçin…" : p.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="label">
-          Teklif tutarı (₺)
-          <input
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
+        <Field id={`d-assignee-${r.id}`} label="Atanan kişi">
+          <Select defaultValue={r.assignedTo ?? NOBODY} disabled={pending} onValueChange={(v) => start(() => assignRequest(r.id, v === NOBODY ? "" : v))}>
+            <SelectTrigger id={`d-assignee-${r.id}`} className="h-9 w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectItem value={NOBODY}>Atanmamış</SelectItem>
+              {team.map((u) => (
+                <SelectItem key={u.id} value={u.id}>
+                  {u.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field id={`d-stage-${r.id}`} label="Aşama">
+          <Select value={stage} disabled={pending} onValueChange={(v) => changeStage(v)}>
+            <SelectTrigger id={`d-stage-${r.id}`} className={cn("h-9 w-full", tone)}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {PIPELINE_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field id={`d-product-${r.id}`} label="Ürün">
+          <Select defaultValue={r.product} disabled={pending} onValueChange={(v) => start(() => setRequestProduct(r.id, v))}>
+            <SelectTrigger id={`d-product-${r.id}`} className={cn("h-9 w-full", r.product === "genel" && "border-brand/50 text-brand")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {PRODUCTS.map((p) => (
+                <SelectItem key={p.code} value={p.code}>
+                  {p.code === "genel" ? "Ürün seçin…" : p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field id={`d-quote-${r.id}`} label="Teklif tutarı (₺)">
+          <Input
+            id={`d-quote-${r.id}`}
             defaultValue={r.quoteAmount ? Number(r.quoteAmount).toLocaleString("tr-TR") : ""}
             inputMode="decimal"
             placeholder="—"
@@ -374,11 +420,11 @@ function Management({ r, team }: { r: Request; team: { id: string; name: string 
               const before = r.quoteAmount ? Number(r.quoteAmount).toLocaleString("tr-TR") : "";
               if (e.target.value !== before) start(() => updateQuote(r.id, e.target.value));
             }}
-            className="input mt-1"
+            className="h-9"
           />
-        </label>
+        </Field>
       </div>
-      {r.stage === "lost" && r.lostReason && <p className="mt-2 text-sm text-ink-2">Kayıp nedeni: {r.lostReason}</p>}
+      {r.stage === "lost" && r.lostReason && <p className="mt-2 text-sm text-muted-foreground">Kayıp nedeni: {r.lostReason}</p>}
       {err && <p className="mt-2 text-sm text-brand">{err}</p>}
       {lost && (
         <LostDialog
@@ -414,50 +460,48 @@ function Reminders({ contactId, requestId, product, alarms }: { contactId: strin
           {alarms.map((a) => {
             const due = new Date(a.dueAt) < new Date();
             return (
-              <li key={a.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${due ? "border-brand/40 bg-orange-50" : "border-line"}`}>
+              <li key={a.id} className={cn("flex items-center gap-2 rounded-lg border px-3 py-2 text-sm", due ? "border-brand/40 bg-orange-50" : "border-border")}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{a.title}</span>
-                  <span className={`text-xs ${due ? "font-semibold text-brand" : "text-ink-2"}`}>
+                  <span className={cn("text-xs", due ? "font-semibold text-brand" : "text-muted-foreground")}>
                     {a.kind === "renewal" ? "Yenileme · " : ""}
                     {fmtDateTime(a.dueAt)}
                   </span>
                 </span>
-                <button type="button" onClick={() => start(() => setReminderDone(a.id, true))} className="btn-ghost px-2 py-1 text-xs">
+                <Button type="button" variant="ghost" size="xs" onClick={() => start(() => setReminderDone(a.id, true))}>
+                  <CheckIcon />
                   Tamamlandı
-                </button>
+                </Button>
               </li>
             );
           })}
         </ul>
       )}
-      <fieldset className="space-y-2 text-sm">
-        <legend className="sr-only">Hatırlatma</legend>
-        <label className="flex cursor-pointer items-center gap-2.5">
-          <input type="radio" name={`plan-${requestId}`} checked={!plan} onChange={() => setPlan(false)} className="size-4 accent-navy" />
+      <RadioGroup value={plan ? "plan" : "none"} onValueChange={(v) => setPlan(v === "plan")} aria-label="Hatırlatma" className="gap-2.5">
+        <Label htmlFor={`plan-none-${requestId}`} className="cursor-pointer gap-2.5 font-normal">
+          <RadioGroupItem id={`plan-none-${requestId}`} value="none" />
           Hatırlatma yok
-        </label>
-        <label className="flex cursor-pointer items-center gap-2.5">
-          <input type="radio" name={`plan-${requestId}`} checked={plan} onChange={() => setPlan(true)} className="size-4 accent-navy" />
+        </Label>
+        <Label htmlFor={`plan-yes-${requestId}`} className="cursor-pointer gap-2.5 font-normal">
+          <RadioGroupItem id={`plan-yes-${requestId}`} value="plan" />
           Bir hatırlatma planla
-        </label>
-      </fieldset>
+        </Label>
+      </RadioGroup>
       {plan && (
-        <form {...formProps} className="mt-3 space-y-2 rounded-lg bg-cream-l p-3">
+        <form {...formProps} className="mt-3 space-y-3 rounded-lg bg-secondary/60 p-3">
           <input type="hidden" name="contactId" value={contactId} />
           <input type="hidden" name="requestId" value={requestId} />
-          <label className="label">
-            Ne zaman?
-            <input type="datetime-local" name="at" required defaultValue={toLocalInput(tomorrow)} className="input mt-1" />
-          </label>
-          <label className="label">
-            Ne yapılacak?
-            <input name="title" required maxLength={300} defaultValue={`${productLabel(product)} için tekrar ara`} className="input mt-1" />
-          </label>
+          <Field id={`r-at-${requestId}`} label="Ne zaman?">
+            <Input id={`r-at-${requestId}`} type="datetime-local" name="at" required defaultValue={toLocalInput(tomorrow)} className="h-9 bg-card" />
+          </Field>
+          <Field id={`r-title-${requestId}`} label="Ne yapılacak?">
+            <Input id={`r-title-${requestId}`} name="title" required maxLength={300} defaultValue={`${productLabel(product)} için tekrar ara`} className="h-9 bg-card" />
+          </Field>
           {state && "error" in state && <p className="text-sm text-brand">{state.error}</p>}
           <div className="flex justify-end">
-            <button className="btn-primary py-1.5" disabled={pending}>
+            <Button type="submit" size="sm" disabled={pending}>
               Kaydet
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -477,24 +521,24 @@ function Notes({ contactId, product }: { contactId: string; product: string }) {
       <input type="hidden" name="status" value="note" />
       {product !== "genel" && <input type="hidden" name="product" value={product} />}
       <div className="relative">
-        <textarea
+        <Textarea
           name="body"
           value={text}
           onChange={(e) => setText(e.target.value.slice(0, NOTE_MAX))}
           rows={3}
           placeholder="Bir not yaz…"
           aria-label="Not"
-          className="input resize-y pr-16"
+          className="min-h-20 resize-y pr-16 [field-sizing:fixed]"
         />
-        <span className="pointer-events-none absolute top-2 right-3 text-xs text-ink-2 tabular-nums">
+        <span className="pointer-events-none absolute top-2 right-3 text-xs text-muted-foreground tabular-nums">
           {text.length}/{NOTE_MAX}
         </span>
       </div>
       {state && "error" in state && <p className="mt-1 text-sm text-brand">{state.error}</p>}
       <div className="mt-2 flex justify-end">
-        <button className="btn-primary py-1.5" disabled={pending || !text.trim()}>
+        <Button type="submit" size="sm" disabled={pending || !text.trim()}>
           Kaydet
-        </button>
+        </Button>
       </div>
     </form>
   );

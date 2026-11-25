@@ -1,17 +1,25 @@
 "use client";
 
+import { BellIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { assignRequest, moveStage, setCallStatus } from "@/app/(app)/actions";
+import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FIRST_RESPONSE_SLA_MIN, PIPELINE_OPTIONS, STAGES, callStatus, formLabel, pipelineValue, productLabel } from "@/lib/constants";
 import { ago, fmtDateTime, initials, minutesSince } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import type { RequestRow } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 import { SourceChip } from "./chips";
 import { LostDialog } from "./lost-dialog";
 
 type Team = { id: string; name: string }[];
+
+/** Radix Select can't hold "", so "Atanmamış" uses this value in the UI and "" towards the server. */
+const NOBODY = "none";
 
 /** Link that opens a lead in the side panel, keeping the current filters and view. */
 export function useLeadHref() {
@@ -65,21 +73,21 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
           {error}
         </p>
       )}
-      <div className="card overflow-x-auto">
-        <table className="w-full min-w-[1040px] text-sm">
-          <thead className="border-b border-line text-left text-xs text-ink-2">
-            <tr>
-              <th className="px-4 py-2.5 font-medium">Eklenme</th>
-              <th className="px-3 py-2.5 font-medium">Ad</th>
-              <th className="px-3 py-2.5 font-medium">Aşama</th>
-              <th className="px-3 py-2.5 font-medium">Kaynak</th>
-              <th className="px-3 py-2.5 font-medium">Reklam / form</th>
-              <th className="px-3 py-2.5 font-medium">Ürün</th>
-              <th className="px-3 py-2.5 font-medium">Atanan</th>
-              <th className="px-4 py-2.5 font-medium">Hatırlatma</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+      <Card className="gap-0 py-0">
+        <Table className="min-w-[1040px]">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="pl-4 text-xs text-muted-foreground">Eklenme</TableHead>
+              <TableHead className="px-3 text-xs text-muted-foreground">Ad</TableHead>
+              <TableHead className="px-3 text-xs text-muted-foreground">Aşama</TableHead>
+              <TableHead className="px-3 text-xs text-muted-foreground">Kaynak</TableHead>
+              <TableHead className="px-3 text-xs text-muted-foreground">Reklam / form</TableHead>
+              <TableHead className="px-3 text-xs text-muted-foreground">Ürün</TableHead>
+              <TableHead className="px-3 text-xs text-muted-foreground">Atanan</TableHead>
+              <TableHead className="pr-4 text-xs text-muted-foreground">Hatırlatma</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.map((r) => {
               const late = r.stage === "new" && minutesSince(r.createdAt) > FIRST_RESPONSE_SLA_MIN;
               const due = r.nextAlarmAt && new Date(r.nextAlarmAt) < new Date();
@@ -89,73 +97,79 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
               const origin = r.source === "meta" ? (d.ad ?? d.adset ?? d.campaign) : (formLabel(d.form) ?? d.campaign);
               const originSub = r.source === "meta" ? (d.ad || d.adset ? d.campaign : formLabel(d.form)) : d.page;
               return (
-                <tr key={r.id} className={r.id === selected ? "bg-navy-l/25" : "hover:bg-cream-l"}>
-                  <td className={`px-4 py-2.5 whitespace-nowrap tabular-nums ${late ? "font-semibold text-brand" : "text-ink-2"}`} title={fmtDateTime(r.createdAt)}>
+                <TableRow key={r.id} data-state={r.id === selected ? "selected" : undefined} className="data-[state=selected]:bg-navy-l/25">
+                  <TableCell className={cn("py-2.5 pl-4 tabular-nums", late ? "font-semibold text-brand" : "text-muted-foreground")} title={fmtDateTime(r.createdAt)}>
                     {ago(r.createdAt)}
-                  </td>
-                  <td className="px-3 py-2.5">
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5">
                     <Link href={href(r.id)} scroll={false} className="flex items-center gap-2 font-medium hover:underline">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-cream text-[10px] font-semibold text-navy">{initials(r.fullName)}</span>
+                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-semibold text-navy">{initials(r.fullName)}</span>
                       <span className="min-w-0">
                         <span className="block max-w-56 truncate">{r.fullName}</span>
-                        <span className="block text-xs font-normal text-ink-2 tabular-nums">{formatPhone(r.phone)}</span>
+                        <span className="block text-xs font-normal text-muted-foreground tabular-nums">{formatPhone(r.phone)}</span>
                       </span>
                     </Link>
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <label className="sr-only" htmlFor={`tst-${r.id}`}>
-                      Aşama
-                    </label>
-                    <select
-                      id={`tst-${r.id}`}
-                      value={pipelineValue(r.stage, r.callStatus)}
-                      onChange={(e) => changeStage(r.id, e.target.value)}
-                      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${tone}`}
-                    >
-                      {PIPELINE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-3 py-2.5">
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5">
+                    <Select value={pipelineValue(r.stage, r.callStatus)} onValueChange={(v) => changeStage(r.id, v)}>
+                      <SelectTrigger size="sm" aria-label="Aşama" className={cn("h-6! rounded-full px-2.5 text-xs font-medium", tone)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {PIPELINE_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5">
                     <SourceChip code={r.source} detail={r.sourceDetail} />
-                  </td>
-                  <td className="max-w-56 px-3 py-2.5" title={[d.campaign, d.adset, d.ad].filter(Boolean).join(" › ") || origin || undefined}>
-                    <div className={`truncate ${r.source === "meta" ? "font-medium text-[#5b3a9b]" : "text-ink-2"}`}>{origin ?? "—"}</div>
-                    {originSub && <div className="truncate text-xs text-ink-2">{originSub}</div>}
-                  </td>
-                  <td className={`px-3 py-2.5 ${r.product === "genel" ? "text-brand" : ""}`}>{productLabel(r.product)}</td>
-                  <td className="px-3 py-2.5">
-                    <label className="sr-only" htmlFor={`tas-${r.id}`}>
-                      Atanan kişi
-                    </label>
-                    <select id={`tas-${r.id}`} value={r.assignedTo ?? ""} onChange={(e) => assign(r.id, e.target.value)} className="rounded-md border border-line bg-white px-2 py-1 text-xs">
-                      <option value="">Atanmamış</option>
-                      {team.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className={`px-4 py-2.5 text-xs whitespace-nowrap ${due ? "font-semibold text-brand" : "text-ink-2"}`}>
-                    {r.nextAlarmAt ? `⏰ ${fmtDateTime(r.nextAlarmAt)}` : "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="max-w-56 px-3 py-2.5" title={[d.campaign, d.adset, d.ad].filter(Boolean).join(" › ") || origin || undefined}>
+                    <div className={cn("truncate", r.source === "meta" ? "font-medium text-[#5b3a9b]" : "text-muted-foreground")}>{origin ?? "—"}</div>
+                    {originSub && <div className="truncate text-xs text-muted-foreground">{originSub}</div>}
+                  </TableCell>
+                  <TableCell className={cn("px-3 py-2.5", r.product === "genel" && "text-brand")}>{productLabel(r.product)}</TableCell>
+                  <TableCell className="px-3 py-2.5">
+                    <Select value={r.assignedTo ?? NOBODY} onValueChange={(v) => assign(r.id, v === NOBODY ? "" : v)}>
+                      <SelectTrigger size="sm" aria-label="Atanan kişi" className="h-7 min-w-32 bg-card text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value={NOBODY}>Atanmamış</SelectItem>
+                        {team.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className={cn("py-2.5 pr-4 text-xs", due ? "font-semibold text-brand" : "text-muted-foreground")}>
+                    {r.nextAlarmAt ? (
+                      <span className="inline-flex items-center gap-1">
+                        <BellIcon className="size-3" aria-hidden="true" />
+                        {fmtDateTime(r.nextAlarmAt)}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                </TableRow>
               );
             })}
             {items.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-ink-2">
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                   Bu filtrelerde lead yok.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
       {lost && (
         <LostDialog
           onCancel={() => setLost(null)}
