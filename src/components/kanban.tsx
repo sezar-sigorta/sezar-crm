@@ -9,6 +9,8 @@ import { ago, fmtDateTime, initials, minutesSince, nearAlarmLabel } from "@/lib/
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import type { RequestRow } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -89,35 +91,35 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
   return (
     <>
       {error && (
-        <p role="alert" className="mb-3 rounded-lg border border-brand/30 bg-orange-50 px-3 py-2 text-sm text-brand">
-          {error}
-        </p>
+        <Alert variant="destructive" className="mb-3">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-      <div className="-mx-4 overflow-x-auto px-4 pb-4 md:-mx-8 md:px-8">
+      <div className="-mx-4 overflow-x-auto px-4 pb-4 lg:-mx-6 lg:px-6">
         <div className="grid min-w-[980px] grid-cols-[1fr_1.2fr_1fr_1fr] gap-3">
           {STAGES.map((s) => {
             const col = items.filter((r) => r.stage === s.code);
             const meta = COLUMN[s.code];
             return (
-              <Card
+              <section
                 key={s.code}
                 role="region"
                 aria-label={s.label}
                 {...dropProps(s.code, (id) => move(id, s.code))}
                 onDragLeave={() => setOver((o) => (o === s.code ? null : o))}
                 className={cn(
-                  "max-h-[calc(100dvh-180px)] min-h-[60vh] min-w-0 gap-0 border py-0 ring-0 transition-colors",
-                  over === s.code ? "border-navy-m bg-navy-l/25" : dragging ? "border-dashed border-navy-l bg-secondary/40" : "border-border bg-secondary/40",
+                  "flex max-h-[calc(100dvh-180px)] min-h-[60vh] min-w-0 flex-col rounded-xl bg-muted/60 transition-colors",
+                  over === s.code ? "bg-muted ring-2 ring-ring/50" : dragging && "ring-1 ring-border ring-dashed",
                 )}
               >
-                <h2 className="flex items-center gap-2 border-b border-border/70 px-3.5 py-3 text-sm font-semibold text-navy">
+                <h2 className="flex items-center gap-2 px-3 pt-3 pb-2 text-sm font-medium">
                   <span className={cn("size-2 rounded-full", meta.dot)} aria-hidden="true" />
                   {meta.title}
-                  <Badge variant="outline" className="ml-auto bg-card tabular-nums text-muted-foreground">
+                  <Badge variant="secondary" className="ml-auto bg-background tabular-nums">
                     {col.length}
                   </Badge>
                 </h2>
-                <div className="flex-1 overflow-y-auto p-2">
+                <div className="flex-1 overflow-y-auto px-2 pb-2">
                   {s.code === "followup" ? (
                     <div className="flex flex-col gap-3">
                       {[...CALL_STATUSES].reverse().map((cs) => {
@@ -128,14 +130,14 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
                             key={cs.code}
                             aria-label={cs.label}
                             {...dropProps(key, (id) => move(id, "followup", undefined, cs.code), true)}
-                            className={cn("rounded-lg transition-colors", over === key && "bg-navy-l/30 ring-2 ring-navy-m/40")}
+                            className={cn("rounded-lg transition-colors", over === key && "bg-background/60 ring-2 ring-ring/50")}
                           >
-                            <div className="sticky top-0 z-10 flex items-center gap-1.5 bg-muted px-1.5 py-1 text-xs font-medium text-muted-foreground">
+                            <div className="flex items-center gap-1.5 px-1 py-1 text-xs font-medium text-muted-foreground">
                               <span className={cn("size-1.5 rounded-full", SUB_DOT[cs.code])} aria-hidden="true" />
                               {cs.label}
                               <span className="tabular-nums">· {sub.length}</span>
                             </div>
-                            <ul className="flex min-h-8 flex-col gap-1.5 pt-1">
+                            <ul className="flex min-h-8 flex-col gap-2 pt-1">
                               {sub.map((r) => (
                                 <LeadCard key={r.id} r={r} {...cardProps} />
                               ))}
@@ -145,7 +147,7 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
                       })}
                     </div>
                   ) : (
-                    <ul className="flex flex-col gap-1.5">
+                    <ul className="flex flex-col gap-2">
                       {col.map((r) => (
                         <LeadCard key={r.id} r={r} {...cardProps} />
                       ))}
@@ -153,7 +155,7 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
                     </ul>
                   )}
                 </div>
-              </Card>
+              </section>
             );
           })}
         </div>
@@ -172,7 +174,7 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
   );
 }
 
-const SOURCE_DOT: Record<string, string> = { meta: "bg-[#7c5cc4]", website: "bg-navy" };
+const SOURCE_DOT: Record<string, string> = { meta: "bg-chart-3", website: "bg-chart-1" };
 
 function LeadCard({
   r,
@@ -211,28 +213,25 @@ function LeadCard({
           onDrag(true);
         }}
         onDragEnd={() => onDrag(false)}
-        className={cn(
-          "group relative cursor-grab gap-0 px-3 py-2.5 shadow-[0_1px_2px_rgba(20,33,61,0.06)] transition hover:shadow-md active:cursor-grabbing",
-          late ? "ring-brand/40" : "ring-border hover:ring-navy-m/40",
-        )}
+        className="group relative cursor-grab gap-0 p-3 shadow-xs transition-shadow hover:shadow-md active:cursor-grabbing"
       >
-        {late && <span className="absolute inset-y-2 left-0 w-[3px] rounded-r bg-brand" aria-hidden="true" />}
-
         <div className="flex items-start gap-2.5">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-[11px] font-semibold text-navy">{initials(r.fullName)}</span>
+          <Avatar>
+            <AvatarFallback className="text-xs">{initials(r.fullName)}</AvatarFallback>
+          </Avatar>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <Link href={leadHref(r.id)} scroll={false} className="truncate text-sm font-medium text-navy after:absolute after:inset-0 hover:underline" title={r.fullName}>
+              <Link href={leadHref(r.id)} scroll={false} className="truncate text-sm font-medium after:absolute after:inset-0 hover:underline" title={r.fullName}>
                 {r.fullName}
               </Link>
               {r.lifecycle === "customer" && (
-                <Badge variant="outline" className="h-4 shrink-0 rounded px-1 text-[10px] font-semibold border-emerald-200 bg-emerald-50 text-emerald-700">
+                <Badge variant="secondary" className="h-4 shrink-0 px-1.5 text-[10px]">
                   Müşteri
                 </Badge>
               )}
             </div>
             <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground" title={origin || undefined}>
-              <span className={cn("truncate", r.product === "genel" ? "font-medium text-brand" : "text-navy")}>
+              <span className={cn("truncate", r.product === "genel" ? "font-medium text-brand" : "text-foreground")}>
                 {r.product === "genel" ? "Ürün seçilmedi" : productLabel(r.product)}
               </span>
               <span aria-hidden="true">·</span>
@@ -240,43 +239,48 @@ function LeadCard({
               <span className="truncate">{source}</span>
             </div>
             {ad && (
-              <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[11px] text-[#5b3a9b]" title={`Reklam: ${adPath}`}>
+              <div className="mt-0.5 flex min-w-0 items-center gap-1 text-xs text-muted-foreground" title={`Reklam: ${adPath}`}>
                 <MegaphoneIcon className="size-3 shrink-0" aria-hidden="true" />
                 <span className="truncate">{ad}</span>
               </div>
             )}
           </div>
           {owner ? (
-            <span title={`Atanan: ${owner.name}`} className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
-              {initials(owner.name)}
-            </span>
+            <Avatar size="sm" title={`Atanan: ${owner.name}`}>
+              <AvatarFallback className="bg-primary text-[10px] text-primary-foreground">{initials(owner.name)}</AvatarFallback>
+            </Avatar>
           ) : (
-            <span title="Atanmamış" className="grid size-6 shrink-0 place-items-center rounded-full border border-dashed border-navy-l text-[10px] text-navy-m">
-              ?
-            </span>
+            <Avatar size="sm" title="Atanmamış" className="after:border-dashed">
+              <AvatarFallback className="bg-transparent text-[10px] text-muted-foreground">?</AvatarFallback>
+            </Avatar>
           )}
         </div>
 
-        <div className="mt-1.5 flex min-w-0 items-center gap-2 pl-[42px] text-[11px] whitespace-nowrap">
-          <span className={late ? "font-semibold text-brand" : "text-muted-foreground"} title={fmtDateTime(r.createdAt)}>
+        <div className="mt-2 flex min-w-0 items-center gap-2 text-xs whitespace-nowrap">
+          <span className="truncate text-muted-foreground" title={fmtDateTime(r.createdAt)}>
             {ago(r.createdAt, now)}
           </span>
+          {late && (
+            <Badge variant="outline" className="h-5 border-brand/30 px-1.5 text-brand">
+              Gecikti
+            </Badge>
+          )}
           {alarm && alarmText && (
             <Badge
               variant="outline"
               title={`Hatırlatma: ${fmtDateTime(alarm)}`}
-              className={cn("h-4 px-1.5 text-[11px]", due ? "border-brand/30 bg-orange-50 font-semibold text-brand" : "border-transparent px-0 font-normal text-muted-foreground")}
+              className={cn("h-5 px-1.5", due ? "border-brand/30 text-brand" : "border-transparent px-0 font-normal text-muted-foreground")}
             >
               <BellIcon aria-hidden="true" />
               {alarmText}
             </Badge>
           )}
           {/* Quick actions: on hover (always visible on touch screens). Above the card-wide link. */}
-          <span className="absolute right-2 bottom-2 z-10 flex gap-0.5 rounded-md bg-card opacity-0 shadow-sm ring-1 ring-border transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
-            <a href={`tel:+90${r.phone}`} title={`Ara: ${formatPhone(r.phone)}`} aria-label={`${r.fullName} kişisini ara`} className="grid size-6 place-items-center rounded-md text-navy hover:bg-secondary">
+          <span className="relative z-10 ml-auto flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+            <a href={`tel:+90${r.phone}`} title={`Ara: ${formatPhone(r.phone)}`} aria-label={`${r.fullName} kişisini ara`} className="grid size-6 place-items-center rounded-md text-foreground hover:bg-muted">
               <PhoneIcon className="size-3.5" aria-hidden="true" />
             </a>
-            <a href={whatsappLink(r.phone)} target="_blank" rel="noreferrer" title="WhatsApp" aria-label={`${r.fullName} kişisine WhatsApp`} className="grid size-6 place-items-center rounded-md text-wa hover:bg-emerald-50">
+            <a href={whatsappLink(r.phone)} target="_blank" rel="noreferrer" title="WhatsApp" aria-label={`${r.fullName} kişisine WhatsApp`} className="grid size-6 place-items-center rounded-md text-wa hover:bg-muted">
               <MessageCircleIcon className="size-3.5" aria-hidden="true" />
             </a>
           </span>
@@ -293,7 +297,7 @@ function LeadCard({
           <SelectTrigger
             size="sm"
             aria-label="Aşama"
-            className="relative z-10 mt-2 h-7 w-full bg-background text-xs text-navy md:sr-only md:focus:not-sr-only md:data-[state=open]:not-sr-only"
+            className="relative z-10 mt-2 h-7 w-full text-xs md:sr-only md:focus:not-sr-only md:data-[state=open]:not-sr-only"
           >
             <SelectValue />
           </SelectTrigger>

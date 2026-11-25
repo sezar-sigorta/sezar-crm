@@ -1,14 +1,14 @@
-import { SquareKanbanIcon, PlusIcon, SearchIcon, TableIcon } from "lucide-react";
+import { ListFilterIcon, PlusIcon, SearchIcon, SquareKanbanIcon, TableIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/chips";
+import { FilterSelect } from "@/components/filter-select";
 import { Kanban } from "@/components/kanban";
 import { LeadDrawer } from "@/components/lead-drawer";
 import { LeadTable } from "@/components/lead-table";
+import { StatCard, StatGrid } from "@/components/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { FIRST_RESPONSE_SLA_MIN, LEAD_CHANNELS, PRODUCTS, channelOf, formLabel } from "@/lib/constants";
@@ -55,25 +55,11 @@ export default async function Talepler({ searchParams }: { searchParams: SP }) {
   const closed = won + rows.filter((r) => r.stage === "lost").length;
   const unassigned = rows.filter((r) => !r.assignedTo && r.stage !== "won" && r.stage !== "lost").length;
 
-  const selectCls = "h-8 w-auto bg-card";
+  const viewItem = "h-8 px-3 data-[state=on]:bg-muted data-[state=on]:text-foreground";
 
   return (
     <>
       <PageHeader title="Lead Merkezi" sub="Meta reklam formları ve web sitesi formlarından gelen tüm talepler.">
-        <ToggleGroup type="single" value={view} variant="outline" spacing={0} aria-label="Görünüm" className="bg-card">
-          <ToggleGroupItem value="ardisik" asChild className={toggleOn}>
-            <Link href={href({ gorunum: null })} aria-current={view === "ardisik" ? "page" : undefined}>
-              <SquareKanbanIcon data-icon="inline-start" />
-              Ardışık<span className="hidden sm:inline"> görünüm</span>
-            </Link>
-          </ToggleGroupItem>
-          <ToggleGroupItem value="tablo" asChild className={toggleOn}>
-            <Link href={href({ gorunum: "tablo" })} aria-current={view === "tablo" ? "page" : undefined}>
-              <TableIcon data-icon="inline-start" />
-              Tablo<span className="hidden sm:inline"> görünümü</span>
-            </Link>
-          </ToggleGroupItem>
-        </ToggleGroup>
         <Button asChild>
           <Link href="/kisiler/yeni">
             <PlusIcon data-icon="inline-start" />
@@ -82,119 +68,92 @@ export default async function Talepler({ searchParams }: { searchParams: SP }) {
         </Button>
       </PageHeader>
 
-      <Tabs value={channel || "all"}>
-        <nav aria-label="Kaynak" className="-mx-4 overflow-x-auto border-b border-border px-4 md:mx-0 md:px-0">
-          <TabsList variant="line" className="h-auto! gap-1 p-0">
-            {LEAD_CHANNELS.map((c) => {
-              const n = c.code ? all.filter((r) => channelOf(r.source) === c.code).length : all.length;
-              const on = channel === c.code;
-              return (
-                <TabsTrigger key={c.code || "all"} value={c.code || "all"} asChild className="h-10 flex-none px-3 group-data-horizontal/tabs:after:bottom-[-1px] after:bg-navy data-active:font-semibold data-active:text-navy">
-                  <Link href={href({ kaynak: c.code || null, lead: null })} aria-current={on ? "page" : undefined}>
-                    {c.label}
-                    <Badge variant="secondary" className="h-4.5 px-1.5 tabular-nums">
-                      {n}
-                    </Badge>
-                  </Link>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-        </nav>
-      </Tabs>
+      <StatGrid>
+        <StatCard
+          label="Yanıt bekleyen"
+          value={waiting.length}
+          foot={late ? `${late} tanesi ${FIRST_RESPONSE_SLA_MIN} dk'yı geçti` : "Hepsi süresinde"}
+          sub="Henüz aranmamış talepler"
+          alert={late > 0}
+        />
+        <StatCard label="Atanmamış açık lead" value={unassigned} foot={unassigned ? "Sorumlu bekliyor" : "Hepsinin sorumlusu var"} sub="Açık talepler içinde" />
+        <StatCard label="Kazanılan" value={won} foot="Poliçeye dönen talepler" sub="Son 30 gün" />
+        <StatCard label="Dönüşüm oranı" value={closed ? `%${Math.round((won / closed) * 100)}` : "—"} foot={`${won} / ${closed} kapanan talep`} sub="Kazanılan / kapanan" />
+      </StatGrid>
 
-      <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Yanıt bekleyen" value={waiting.length} hint={late ? `${late} tanesi ${FIRST_RESPONSE_SLA_MIN} dk'yı geçti` : "Hepsi süresinde"} warn={late > 0} />
-        <Stat label="Atanmamış açık lead" value={unassigned} />
-        <Stat label="Kazanılan (30 gün)" value={won} />
-        <Stat label="Dönüşüm oranı" value={closed ? `%${Math.round((won / closed) * 100)}` : "—"} hint="Kapanan talepler içinde" />
-      </dl>
-
-      <form className="flex flex-wrap items-end gap-2" role="search">
-        {channel && <input type="hidden" name="kaynak" value={channel} />}
-        {view === "tablo" && <input type="hidden" name="gorunum" value="tablo" />}
-        <div className="relative w-full sm:w-64">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input name="q" defaultValue={sp.q} placeholder="İsim, telefon, e-posta…" className="bg-card pl-8" aria-label="Ara" />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Tabs value={channel || "all"} className="max-w-full overflow-x-auto">
+            <TabsList aria-label="Kaynak">
+              {LEAD_CHANNELS.map((c) => {
+                const n = c.code ? all.filter((r) => channelOf(r.source) === c.code).length : all.length;
+                return (
+                  <TabsTrigger key={c.code || "all"} value={c.code || "all"} asChild>
+                    <Link href={href({ kaynak: c.code || null, lead: null })} aria-current={channel === c.code ? "page" : undefined}>
+                      {c.label}
+                      <Badge variant="secondary" className="tabular-nums">
+                        {n}
+                      </Badge>
+                    </Link>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
+          <ToggleGroup type="single" value={view} variant="outline" size="sm" spacing={0} aria-label="Görünüm">
+            <ToggleGroupItem value="ardisik" asChild className={viewItem}>
+              <Link href={href({ gorunum: null })} aria-current={view === "ardisik" ? "page" : undefined}>
+                <SquareKanbanIcon data-icon="inline-start" />
+                Pano<span className="sr-only"> görünümü</span>
+              </Link>
+            </ToggleGroupItem>
+            <ToggleGroupItem value="tablo" asChild className={viewItem}>
+              <Link href={href({ gorunum: "tablo" })} aria-current={view === "tablo" ? "page" : undefined}>
+                <TableIcon data-icon="inline-start" />
+                Tablo<span className="sr-only"> görünümü</span>
+              </Link>
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
-        <Select name="urun" defaultValue={sp.urun ?? ALL}>
-          <SelectTrigger aria-label="Sigorta türü" className={selectCls}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value={ALL}>Tüm ürünler</SelectItem>
-            {PRODUCTS.map((p) => (
-              <SelectItem key={p.code} value={p.code}>
-                {p.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select name="sorumlu" defaultValue={sp.sorumlu ?? ALL}>
-          <SelectTrigger aria-label="Atanan" className={selectCls}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value={ALL}>Herkes</SelectItem>
-            <SelectItem value="none">Atanmamış</SelectItem>
-            {team.map((u) => (
-              <SelectItem key={u.id} value={u.id}>
-                {u.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select name="form" defaultValue={sp.form ?? ALL}>
-          <SelectTrigger aria-label="Form" className={`${selectCls} max-w-56`}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value={ALL}>Tüm formlar</SelectItem>
-            {names.forms.map((f) => (
-              <SelectItem key={f} value={f}>
-                {formLabel(f)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {channel !== "website" && (
-          <Select name="kampanya" defaultValue={sp.kampanya ?? ALL}>
-            <SelectTrigger aria-label="Kampanya" className={`${selectCls} max-w-56`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectItem value={ALL}>Tüm kampanyalar</SelectItem>
-              {names.campaigns.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        <Button type="submit">Filtrele</Button>
-        {filtered && (
-          <Button variant="ghost" asChild>
-            <Link href={href({ q: null, urun: null, sorumlu: null, form: null, kampanya: null, lead: null })}>Temizle</Link>
+
+        <form className="flex flex-wrap items-center gap-2" role="search">
+          {channel && <input type="hidden" name="kaynak" value={channel} />}
+          {view === "tablo" && <input type="hidden" name="gorunum" value="tablo" />}
+          <div className="relative w-full sm:w-64">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input name="q" defaultValue={sp.q} placeholder="İsim, telefon, e-posta…" className="h-8 pl-8" aria-label="Ara" />
+          </div>
+          <FilterSelect size="sm" name="urun" label="Sigorta türü" defaultValue={sp.urun} allLabel="Tüm ürünler" options={PRODUCTS.map((p) => ({ value: p.code, label: p.label }))} />
+          <FilterSelect
+            size="sm"
+            name="sorumlu"
+            label="Atanan"
+            defaultValue={sp.sorumlu}
+            allLabel="Herkes"
+            options={[{ value: "none", label: "Atanmamış" }, ...team.map((u) => ({ value: u.id, label: u.name }))]}
+          />
+          <FilterSelect size="sm" name="form" label="Form" defaultValue={sp.form} allLabel="Tüm formlar" className="max-w-56" options={names.forms.map((f) => ({ value: f, label: formLabel(f) ?? f }))} />
+          {channel !== "website" && (
+            <FilterSelect size="sm" name="kampanya" label="Kampanya" defaultValue={sp.kampanya} allLabel="Tüm kampanyalar" className="max-w-56" options={names.campaigns.map((c) => ({ value: c, label: c }))} />
+          )}
+          <Button type="submit" variant="outline" size="sm">
+            <ListFilterIcon data-icon="inline-start" />
+            Filtrele
           </Button>
-        )}
-      </form>
+          {filtered && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={href({ q: null, urun: null, sorumlu: null, form: null, kampanya: null, lead: null })}>
+                <XIcon data-icon="inline-start" />
+                Temizle
+              </Link>
+            </Button>
+          )}
+        </form>
+      </div>
 
       {view === "tablo" ? <LeadTable rows={rows} team={team} selected={sp.lead} /> : <Kanban rows={rows} team={team} />}
 
       {detail && <LeadDrawer key={detail.request.id} detail={detail} team={team} closeHref={href({ lead: null })} />}
     </>
-  );
-}
-
-const toggleOn = "px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground";
-
-function Stat({ label, value, hint, warn }: { label: string; value: number | string; hint?: string; warn?: boolean }) {
-  return (
-    <Card size="sm" className="gap-0.5 px-4 py-3">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="font-display text-2xl font-semibold tabular-nums text-navy">{value}</dd>
-      {hint && <dd className={warn ? "text-xs font-semibold text-brand" : "text-xs text-muted-foreground"}>{hint}</dd>}
-    </Card>
   );
 }

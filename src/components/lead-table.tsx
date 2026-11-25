@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { assignRequest, moveStage, setCallStatus } from "@/app/(app)/actions";
-import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FIRST_RESPONSE_SLA_MIN, PIPELINE_OPTIONS, STAGES, callStatus, formLabel, pipelineValue, productLabel } from "@/lib/constants";
@@ -69,22 +70,22 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
   return (
     <>
       {error && (
-        <p role="alert" className="mb-3 rounded-lg border border-brand/30 bg-orange-50 px-3 py-2 text-sm text-brand">
-          {error}
-        </p>
+        <Alert variant="destructive" className="mb-3">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-      <Card className="gap-0 py-0">
+      <div className="overflow-hidden rounded-lg border">
         <Table className="min-w-[1040px]">
-          <TableHeader>
+          <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="pl-4 text-xs text-muted-foreground">Eklenme</TableHead>
-              <TableHead className="px-3 text-xs text-muted-foreground">Ad</TableHead>
-              <TableHead className="px-3 text-xs text-muted-foreground">Aşama</TableHead>
-              <TableHead className="px-3 text-xs text-muted-foreground">Kaynak</TableHead>
-              <TableHead className="px-3 text-xs text-muted-foreground">Reklam / form</TableHead>
-              <TableHead className="px-3 text-xs text-muted-foreground">Ürün</TableHead>
-              <TableHead className="px-3 text-xs text-muted-foreground">Atanan</TableHead>
-              <TableHead className="pr-4 text-xs text-muted-foreground">Hatırlatma</TableHead>
+              <TableHead className="pl-4">Eklenme</TableHead>
+              <TableHead className="px-3">Ad</TableHead>
+              <TableHead className="px-3">Aşama</TableHead>
+              <TableHead className="px-3">Kaynak</TableHead>
+              <TableHead className="px-3">Reklam / form</TableHead>
+              <TableHead className="px-3">Ürün</TableHead>
+              <TableHead className="px-3">Atanan</TableHead>
+              <TableHead className="pr-4">Hatırlatma</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,13 +98,15 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
               const origin = r.source === "meta" ? (d.ad ?? d.adset ?? d.campaign) : (formLabel(d.form) ?? d.campaign);
               const originSub = r.source === "meta" ? (d.ad || d.adset ? d.campaign : formLabel(d.form)) : d.page;
               return (
-                <TableRow key={r.id} data-state={r.id === selected ? "selected" : undefined} className="data-[state=selected]:bg-navy-l/25">
+                <TableRow key={r.id} data-state={r.id === selected ? "selected" : undefined} className="data-[state=selected]:bg-muted">
                   <TableCell className={cn("py-2.5 pl-4 tabular-nums", late ? "font-semibold text-brand" : "text-muted-foreground")} title={fmtDateTime(r.createdAt)}>
                     {ago(r.createdAt)}
                   </TableCell>
                   <TableCell className="px-3 py-2.5">
                     <Link href={href(r.id)} scroll={false} className="flex items-center gap-2 font-medium hover:underline">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-semibold text-navy">{initials(r.fullName)}</span>
+                      <Avatar size="sm" className="size-7">
+                        <AvatarFallback className="text-[10px]">{initials(r.fullName)}</AvatarFallback>
+                      </Avatar>
                       <span className="min-w-0">
                         <span className="block max-w-56 truncate">{r.fullName}</span>
                         <span className="block text-xs font-normal text-muted-foreground tabular-nums">{formatPhone(r.phone)}</span>
@@ -128,13 +131,13 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
                     <SourceChip code={r.source} detail={r.sourceDetail} />
                   </TableCell>
                   <TableCell className="max-w-56 px-3 py-2.5" title={[d.campaign, d.adset, d.ad].filter(Boolean).join(" › ") || origin || undefined}>
-                    <div className={cn("truncate", r.source === "meta" ? "font-medium text-[#5b3a9b]" : "text-muted-foreground")}>{origin ?? "—"}</div>
+                    <div className={cn("truncate", r.source === "meta" ? "font-medium" : "text-muted-foreground")}>{origin ?? "—"}</div>
                     {originSub && <div className="truncate text-xs text-muted-foreground">{originSub}</div>}
                   </TableCell>
                   <TableCell className={cn("px-3 py-2.5", r.product === "genel" && "text-brand")}>{productLabel(r.product)}</TableCell>
                   <TableCell className="px-3 py-2.5">
                     <Select value={r.assignedTo ?? NOBODY} onValueChange={(v) => assign(r.id, v === NOBODY ? "" : v)}>
-                      <SelectTrigger size="sm" aria-label="Atanan kişi" className="h-7 min-w-32 bg-card text-xs">
+                      <SelectTrigger size="sm" aria-label="Atanan kişi" className="h-7 min-w-32 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent position="popper">
@@ -169,7 +172,7 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
             )}
           </TableBody>
         </Table>
-      </Card>
+      </div>
       {lost && (
         <LostDialog
           onCancel={() => setLost(null)}
