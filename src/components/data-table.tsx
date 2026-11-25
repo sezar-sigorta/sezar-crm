@@ -116,7 +116,7 @@ export function DataTable<T extends RowData>({
         </DropdownMenu>
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-card shadow-xs">
         <Table style={minWidth ? { minWidth } : undefined}>
           <TableHeader className="bg-muted">
             {table.getHeaderGroups().map((hg) => (

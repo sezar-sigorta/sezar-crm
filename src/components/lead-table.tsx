@@ -74,7 +74,7 @@ export function LeadTable({ rows, team, selected }: { rows: RequestRow[]; team: 
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-card shadow-xs">
         <Table className="min-w-[1040px]">
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">

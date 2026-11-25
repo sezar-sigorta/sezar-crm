@@ -16,7 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       style={{ "--sidebar-width": "calc(var(--spacing) * 64)", "--header-height": "calc(var(--spacing) * 12)" } as React.CSSProperties}
     >
       <AppSidebar variant="inset" userName={user.name} role={user.role} newCount={newCount} />
-      <SidebarInset className="min-w-0">
+      <SidebarInset className="min-w-0 bg-surface">
         <CrumbsProvider>
           <SiteHeader />
           <main className="@container/main flex min-w-0 flex-1 flex-col gap-4 p-4 md:gap-6 lg:p-6">{children}</main>

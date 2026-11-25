@@ -108,7 +108,7 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
                 {...dropProps(s.code, (id) => move(id, s.code))}
                 onDragLeave={() => setOver((o) => (o === s.code ? null : o))}
                 className={cn(
-                  "flex max-h-[calc(100dvh-180px)] min-h-[60vh] min-w-0 flex-col rounded-xl bg-muted/60 transition-colors",
+                  "flex max-h-[calc(100dvh-180px)] min-h-[60vh] min-w-0 flex-col rounded-xl border bg-muted/70 transition-colors",
                   over === s.code ? "bg-muted ring-2 ring-ring/50" : dragging && "ring-1 ring-border ring-dashed",
                 )}
               >
