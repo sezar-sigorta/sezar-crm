@@ -1,9 +1,17 @@
 import Link from "next/link";
+import { Plus, Search } from "lucide-react";
 import { NameCell, PageHeader, ProductChip } from "@/components/chips";
+import { FilterSelect } from "@/components/filter-select";
 import { RenewalBadge } from "@/components/renewal-badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { durationSince, fmtDateTime, fmtYmd } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { listCustomers } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +25,7 @@ export default async function Musteriler({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const rows = await listCustomers({ q: sp.q, renewal: sp.yenileme, kind: sp.tur });
   const now = new Date();
+  const current = sp.yenileme ?? "";
   const qs = (v: string) => {
     const p = new URLSearchParams();
     if (sp.q) p.set("q", sp.q);
@@ -28,68 +37,79 @@ export default async function Musteriler({ searchParams }: { searchParams: Promi
   return (
     <>
       <PageHeader title="Müşteriler" sub="Poliçesi olan kişi ve şirketler. En yakın yenilemesi olan en üstte.">
-        <Link href="/kisiler/yeni?tur=musteri" className="btn-primary">
-          + Yeni müşteri
-        </Link>
+        <Button asChild>
+          <Link href="/kisiler/yeni?tur=musteri">
+            <Plus data-icon="inline-start" /> Yeni müşteri
+          </Link>
+        </Button>
       </PageHeader>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <nav className="flex flex-wrap rounded-lg border border-line bg-white p-0.5" aria-label="Yenileme filtresi">
-          {TABS.map((t) => (
-            <Link
-              key={t.v}
-              href={`/musteriler${qs(t.v)}`}
-              aria-current={(sp.yenileme ?? "") === t.v ? "page" : undefined}
-              className={`rounded-md px-3 py-1.5 text-sm ${(sp.yenileme ?? "") === t.v ? "bg-navy text-cream" : "text-ink-2 hover:text-navy"}`}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </nav>
-        <form role="search" className="flex gap-2">
+        <Tabs value={current || "all"} className="max-w-full overflow-x-auto">
+          <TabsList aria-label="Yenileme filtresi">
+            {TABS.map((t) => (
+              <TabsTrigger key={t.v} value={t.v || "all"} asChild>
+                <Link href={`/musteriler${qs(t.v)}`} aria-current={current === t.v ? "page" : undefined}>
+                  {t.label}
+                </Link>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <form role="search" className="flex flex-wrap gap-2">
           {sp.yenileme && <input type="hidden" name="yenileme" value={sp.yenileme} />}
-          <select name="tur" defaultValue={sp.tur ?? ""} className="input w-auto" aria-label="Tür">
-            <option value="">Bireysel + kurumsal</option>
-            <option value="bireysel">Bireysel</option>
-            <option value="kurumsal">Kurumsal</option>
-          </select>
-          <input name="q" defaultValue={sp.q} placeholder="İsim, telefon, e-posta…" className="input w-64" aria-label="Ara" />
-          <button className="btn-ghost">Ara</button>
+          <FilterSelect
+            name="tur"
+            label="Tür"
+            defaultValue={sp.tur}
+            allLabel="Bireysel + kurumsal"
+            options={[
+              { value: "bireysel", label: "Bireysel" },
+              { value: "kurumsal", label: "Kurumsal" },
+            ]}
+          />
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input name="q" defaultValue={sp.q} placeholder="İsim, telefon, e-posta…" className="pl-8" aria-label="Ara" />
+          </div>
+          <Button type="submit" variant="outline">
+            Ara
+          </Button>
         </form>
-        <span className="ml-auto text-sm text-ink-2">{rows.length} müşteri</span>
+        <span className="ml-auto text-sm text-muted-foreground">{rows.length} müşteri</span>
       </div>
 
-      <div className="card overflow-x-auto">
-        <table className="w-full min-w-[860px] text-sm">
-          <thead className="border-b border-line text-left text-xs text-ink-2">
-            <tr>
-              <th className="px-4 py-2.5 font-medium">Müşteri</th>
-              <th className="px-3 py-2.5 font-medium">Telefon / e-posta</th>
-              <th className="px-3 py-2.5 font-medium">Müşteri süresi</th>
-              <th className="px-3 py-2.5 font-medium">Poliçeler</th>
-              <th className="px-3 py-2.5 font-medium">Sonraki yenileme</th>
-              <th className="px-4 py-2.5 font-medium">Alarm</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+      <Card className="py-0">
+        <Table className="min-w-[860px]">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="min-w-60 pl-4">Müşteri</TableHead>
+              <TableHead>Telefon / e-posta</TableHead>
+              <TableHead>Müşteri süresi</TableHead>
+              <TableHead>Poliçeler</TableHead>
+              <TableHead>Sonraki yenileme</TableHead>
+              <TableHead className="pr-4">Alarm</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((c) => (
-              <tr key={c.id} className="hover:bg-cream-l">
-                <td className="px-4 py-2.5">
-                  <NameCell c={c} href={`/kisiler/${c.id}`} sub={c.city && c.kind !== "kurumsal" ? <div className="text-xs text-ink-2">{c.city}</div> : null} />
-                </td>
-                <td className="px-3 py-2.5">
-                  <div className="whitespace-nowrap tabular-nums">{formatPhone(c.phone)}</div>
-                  {c.email && <div className="max-w-48 truncate text-xs text-ink-2">{c.email}</div>}
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">{durationSince(c.customerSince, now)}</td>
-                <td className="px-3 py-2.5">
+              <TableRow key={c.id}>
+                <TableCell className="pl-4 whitespace-normal">
+                  <NameCell c={c} href={`/kisiler/${c.id}`} sub={c.city && c.kind !== "kurumsal" ? <div className="text-xs text-muted-foreground">{c.city}</div> : null} />
+                </TableCell>
+                <TableCell>
+                  <div className="tabular-nums">{formatPhone(c.phone)}</div>
+                  {c.email && <div className="max-w-48 truncate text-xs text-muted-foreground">{c.email}</div>}
+                </TableCell>
+                <TableCell>{durationSince(c.customerSince, now)}</TableCell>
+                <TableCell className="whitespace-normal">
                   <div className="flex flex-wrap gap-1">
                     {(c.products ?? []).map((p) => (
                       <ProductChip key={p} code={p} />
                     ))}
                     {!c.activeCount && <span className="text-xs text-brand">Poliçe girilmemiş</span>}
                   </div>
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">
+                </TableCell>
+                <TableCell>
                   {c.nextRenewal ? (
                     <div className="flex items-center gap-2">
                       {fmtYmd(c.nextRenewal)} <RenewalBadge ymd={c.nextRenewal} />
@@ -97,22 +117,22 @@ export default async function Musteriler({ searchParams }: { searchParams: Promi
                   ) : (
                     "—"
                   )}
-                </td>
-                <td className={`px-4 py-2.5 text-xs whitespace-nowrap ${c.nextAlarmAt && c.nextAlarmAt < now ? "font-semibold text-brand" : "text-ink-2"}`}>
+                </TableCell>
+                <TableCell className={cn("pr-4 text-xs", c.nextAlarmAt && c.nextAlarmAt < now ? "font-semibold text-brand" : "text-muted-foreground")}>
                   {c.nextAlarmAt ? `⏰ ${fmtDateTime(c.nextAlarmAt)}` : "—"}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-ink-2">
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={6} className="py-10 text-center whitespace-normal text-muted-foreground">
                   {sp.yenileme ? "Bu aralıkta yenilenecek poliçe yok." : "Henüz müşteri yok. Leadler sayfasından “Müşteriye dönüştür” ile ekleyin."}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </>
   );
 }

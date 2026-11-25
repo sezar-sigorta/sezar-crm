@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/chips";
 import { NewContactForm } from "@/components/new-contact-form";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function YeniKisi({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const { tur } = await searchParams;
@@ -14,9 +15,11 @@ export default async function YeniKisi({ searchParams }: { searchParams: Promise
             : "Telefonla, WhatsApp'tan ya da yüz yüze gelen talepler için. Numara kayıtlıysa mevcut profile eklenir."
         }
       />
-      <div className="card max-w-2xl p-6">
-        <NewContactForm key={customer ? "c" : "l"} mode={customer ? "customer" : "lead"} />
-      </div>
+      <Card className="max-w-2xl">
+        <CardContent className="sm:px-6 sm:py-2">
+          <NewContactForm key={customer ? "c" : "l"} mode={customer ? "customer" : "lead"} />
+        </CardContent>
+      </Card>
     </>
   );
 }

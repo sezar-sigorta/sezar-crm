@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { PRIVACY_LINES, PRIVACY_TITLE } from "@/lib/privacy-text";
 
 // Public (no login): the privacy policy URL given to Meta while sezarsigorta.com is in "Coming Soon" mode.
@@ -28,12 +30,21 @@ export default function PrivacyPage() {
   flush();
 
   return (
-    <main className="min-h-dvh bg-cream-l px-4 py-12 text-ink">
-      <article className="mx-auto max-w-2xl leading-7">
-        <p className="text-sm font-medium text-ink-2">Sezar Sigorta</p>
-        <h1 className="mb-6 font-display text-3xl font-semibold">{PRIVACY_TITLE}</h1>
-        {blocks}
-      </article>
+    <main className="min-h-dvh bg-background px-4 py-8 text-foreground sm:py-12">
+      <Card className="mx-auto max-w-3xl">
+        <CardContent className="px-5 leading-7 sm:px-10 sm:py-4">
+          <article>
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon.svg" alt="" className="size-9 rounded-lg" />
+              <p className="text-sm font-medium text-muted-foreground">Sezar Sigorta</p>
+            </div>
+            <h1 className="mt-4 font-display text-3xl font-semibold">{PRIVACY_TITLE}</h1>
+            <Separator className="my-6" />
+            {blocks}
+          </article>
+        </CardContent>
+      </Card>
     </main>
   );
 }
