@@ -1020,3 +1020,15 @@ export async function pullMetaLeads(): Promise<PullMetaResult> {
   revalidatePath("/");
   return { ok: true, forms: list.forms, found: ids.length, imported, known: known.size, failed };
 }
+
+/* ------------------------------------------------------------------ tags */
+
+/** Replaces a person's tags (Lead Merkezi side panel). Tags are short free text, de-duplicated. */
+export async function setContactTags(contactId: string, tags: string[]) {
+  await requireUser();
+  const id = uuid.parse(contactId);
+  const clean = [...new Set(tags.map((t) => t.trim().slice(0, 40)).filter(Boolean))].slice(0, 20);
+  const db = await getDb();
+  await db.update(contacts).set({ tags: clean, updatedAt: new Date() }).where(eq(contacts.id, id));
+  refresh(id);
+}

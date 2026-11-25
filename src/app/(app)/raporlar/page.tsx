@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PageHeader, ProductChip } from "@/components/chips";
-import { formLabel, sourceLabel } from "@/lib/constants";
+import { channelOf, formLabel, sourceLabel } from "@/lib/constants";
 import { fmtDate } from "@/lib/format";
 import { type ReportGroup, campaignReport } from "@/lib/queries";
 
@@ -97,7 +97,7 @@ export default async function Raporlar({ searchParams }: { searchParams: Promise
               const name = formLabel(r.key);
               const href = r.key
                 ? `/talepler?${new URLSearchParams(group === "form" ? { form: r.key } : { kampanya: group === "ad" ? (r.parent ?? "") : r.key })}`
-                : `/talepler?${new URLSearchParams({ kaynak: r.source })}`;
+                : `/talepler?${new URLSearchParams({ kaynak: channelOf(r.source) })}`;
               const rate = r.total ? r.won / r.total : 0;
               const few = r.total < MIN_SAMPLE;
               return (

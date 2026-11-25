@@ -7,7 +7,7 @@ import { initials } from "@/lib/format";
 
 const NAV = [
   { href: "/", label: "Pano", icon: "M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
-  { href: "/talepler", label: "Talepler", icon: "M4 5h4v14H4zM10 5h4v9h-4zM16 5h4v6h-4z" },
+  { href: "/talepler", label: "Lead Merkezi", icon: "M4 5h4v14H4zM10 5h4v9h-4zM16 5h4v6h-4z" },
   { href: "/leadler", label: "Leadler", icon: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 20v-1a6 6 0 0112 0v1M19 8v6M16 11h6" },
   { href: "/musteriler", label: "Müşteriler", icon: "M16 19v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 10a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM17 11l2 2 4-4" },
   { href: "/raporlar", label: "Raporlar", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },

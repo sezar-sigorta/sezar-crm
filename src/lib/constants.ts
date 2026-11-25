@@ -132,6 +132,21 @@ export const SOURCES = [
 
 export type SourceCode = (typeof SOURCES)[number]["code"];
 
+/**
+ * The two channels leads arrive from automatically, plus everything typed in by hand.
+ * Used as the source tabs of the Lead Merkezi (?kaynak=meta | website | other).
+ */
+export const LEAD_CHANNELS = [
+  { code: "", label: "Tümü" },
+  { code: "meta", label: "Meta reklamları" },
+  { code: "website", label: "Web sitesi" },
+  { code: "other", label: "Elle girilen" },
+] as const;
+
+export function channelOf(source: string) {
+  return source === "meta" || source === "website" ? source : "other";
+}
+
 /** Website form codes saved by early versions → readable names. */
 export function formLabel(form: string | null | undefined) {
   if (form === "arama") return "Sizi arayalım";
