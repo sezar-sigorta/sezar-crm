@@ -40,7 +40,7 @@ export function ConvertButton({
   );
 }
 
-function ConvertDialog({ contactId, name, defaultProduct, onClose }: { contactId: string; name: string; defaultProduct?: string; onClose: () => void }) {
+export function ConvertDialog({ contactId, name, defaultProduct, onClose }: { contactId: string; name: string; defaultProduct?: string; onClose: () => void }) {
   const [state, formProps, pending] = useFormAction(convertToCustomer);
   const [withPolicy, setWithPolicy] = useState(true);
   const checkId = `cv-add-${contactId.slice(0, 6)}`;

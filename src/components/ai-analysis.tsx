@@ -49,6 +49,16 @@ export function AiAnalysis({
       setAlarmSet(false);
     });
 
+  if (!enabled && !analysis)
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-dashed px-4 py-3 text-xs text-muted-foreground">
+        <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+        <span>
+          AI analizi kapalı. Açmak için sunucuya <code className="font-mono">ANTHROPIC_API_KEY</code> eklenmeli.
+        </span>
+      </div>
+    );
+
   return (
     <>
       <Card role="region" className="gap-0 pt-0" aria-labelledby="ai-h">

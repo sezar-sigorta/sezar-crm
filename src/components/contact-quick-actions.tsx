@@ -54,7 +54,7 @@ export function ContactQuickActions({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Button asChild variant="outline">
+      <Button asChild variant="outline" size="sm">
         <a href={`tel:+90${phone}`}>
           <Phone data-icon="inline-start" />
           Ara
@@ -62,8 +62,8 @@ export function ContactQuickActions({
       </Button>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button type="button" className="bg-wa text-white hover:bg-wa/90" disabled={pending}>
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-icon="inline-start">
+          <Button type="button" variant="outline" size="sm" disabled={pending}>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-icon="inline-start" className="text-wa">
               <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7a11.3 11.3 0 01-4.5-4c-.3-.5-1-1.5-1-2.8s.7-2 .9-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.8-.1 1.4z" />
             </svg>
             WhatsApp
@@ -99,10 +99,9 @@ export function ContactQuickActions({
         </DropdownMenuContent>
       </DropdownMenu>
       {email && (
-        <Button asChild variant="outline">
-          <a href={`mailto:${email}`}>
-            <Mail data-icon="inline-start" />
-            E-posta
+        <Button asChild variant="outline" size="icon-sm" title={`E-posta: ${email}`}>
+          <a href={`mailto:${email}`} aria-label="E-posta gönder">
+            <Mail />
           </a>
         </Button>
       )}

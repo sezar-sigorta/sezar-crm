@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormAction } from "@/components/use-form-action";
 import { updateContact } from "@/app/(app)/actions";
 import type { Contact } from "@/db/schema";
@@ -15,8 +15,11 @@ import { CorporateFields } from "./corporate-fields";
 
 const ON = "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90";
 
-export function ContactEditForm({ c }: { c: Contact }) {
+export function ContactEditForm({ c, onSaved }: { c: Contact; onSaved?: () => void }) {
   const [state, formProps, pending] = useFormAction(updateContact);
+  useEffect(() => {
+    if (state?.ok) onSaved?.();
+  }, [state, onSaved]);
   const [kind, setKind] = useState(c.kind === "kurumsal" ? "kurumsal" : "bireysel");
   const corp = kind === "kurumsal";
   const consentId = `mc-${c.id.slice(0, 6)}`;
