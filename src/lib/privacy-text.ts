@@ -29,7 +29,7 @@ export const PRIVACY_LINES: string[] = [
   "## Ne kadar saklıyoruz?",
   "Teklif aşamasında kalan başvuruları son görüşmemizden itibaren 2 yıl, müşteri ve poliçe kayıtlarını ise mevzuatın öngördüğü süre boyunca saklarız. Ayrıntılar KVKK aydınlatma metnimizde yer alır.",
   "## Haklarınız ve bilgilerinizin silinmesi",
-  "Bilgilerinize erişmek, düzeltilmesini veya silinmesini istemek için bize +90 312 418 31 71 numaralı telefondan, [E-POSTA ADRESİ] adresinden veya ofisimize yazılı olarak ulaşabilirsiniz. Facebook veya Instagram reklam formu aracılığıyla ilettiğiniz bilgilerin silinmesini de aynı yollarla isteyebilirsiniz. Yasal olarak saklamak zorunda olmadığımız bilgilerinizi en geç 30 gün içinde sileriz. Tüm haklarınız KVKK aydınlatma metnimizde listelenmiştir.",
+  "Bilgilerinize erişmek, düzeltilmesini veya silinmesini istemek için bize +90 312 418 31 71 numaralı telefondan, iletisim@sezarsigorta.com adresinden veya ofisimize yazılı olarak ulaşabilirsiniz. Facebook veya Instagram reklam formu aracılığıyla ilettiğiniz bilgilerin silinmesini de aynı yollarla isteyebilirsiniz. Yasal olarak saklamak zorunda olmadığımız bilgilerinizi en geç 30 gün içinde sileriz. Tüm haklarınız KVKK aydınlatma metnimizde listelenmiştir.",
   "## Ticari mesajlar",
   "Kampanya ve hatırlatma mesajlarını yalnızca onay vermeniz hâlinde göndeririz. Onayınızı dilediğiniz zaman ücretsiz olarak geri alabilirsiniz. Ayrıntılar: Ticari elektronik ileti onay metni (sezarsigorta.com/ticari-ileti-onayi).",
   "## Çocuklar",
@@ -37,5 +37,5 @@ export const PRIVACY_LINES: string[] = [
   "## Değişiklikler",
   "Bu politikayı zaman zaman güncelleyebiliriz. Güncel metin her zaman bu sayfadadır; önemli değişikliklerde sayfanın başındaki tarihi güncelleriz.",
   "## İletişim",
-  "Ulvi Dağdeviren Sigorta Aracılık Hizmetleri Limited Şirketi, Şehit Adem Yavuz Sokak No:16/14, Kızılay / Ankara 06420 · +90 312 418 31 71 · [E-POSTA ADRESİ]"
+  "Ulvi Dağdeviren Sigorta Aracılık Hizmetleri Limited Şirketi, Şehit Adem Yavuz Sokak No:16/14, Kızılay / Ankara 06420 · +90 312 418 31 71 · iletisim@sezarsigorta.com"
 ];
