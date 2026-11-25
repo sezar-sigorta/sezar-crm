@@ -3,7 +3,13 @@
 import { useState, useTransition } from "react";
 import { addReminder, whatsappCustom } from "@/app/(app)/actions";
 import { analyzeContact } from "@/app/(app)/ai-actions";
+import { AlertCircle, AlarmClock, Check, MessageCircle, RefreshCw, Sparkles } from "lucide-react";
 import { ago, toLocalInput, todayYmd } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Chip } from "./chips";
 import { CrossSell } from "./cross-sell";
 
 type Analysis = {
@@ -45,34 +51,40 @@ export function AiAnalysis({
 
   return (
     <>
-      <section className="card overflow-hidden" aria-labelledby="ai-h">
-        <div className="flex items-center gap-2 border-b border-line bg-gradient-to-r from-[#f4effd] to-white px-5 py-3.5">
-          <h2 id="ai-h" className="text-base font-semibold">
-            ✨ AI analizi
-          </h2>
-          {analyzedAt && <span className="text-xs text-ink-2">{ago(analyzedAt)}</span>}
-          <button type="button" className="btn-ghost ml-auto px-2.5 py-1 text-xs" disabled={!enabled || pending} onClick={run}>
-            {pending ? "Analiz ediliyor…" : analysis ? "Yenile" : "Analiz et"}
-          </button>
-        </div>
+      <Card role="region" className="gap-0 pt-0" aria-labelledby="ai-h">
+        <CardHeader className="border-b bg-gradient-to-r from-[#f4effd] to-card pt-4">
+          <CardTitle id="ai-h" className="flex items-center gap-1.5 font-display text-base font-semibold">
+            <Sparkles className="size-4 text-[#5b3a9b]" aria-hidden="true" />
+            AI analizi
+          </CardTitle>
+          {analyzedAt && <CardDescription className="text-xs">{ago(analyzedAt)}</CardDescription>}
+          <CardAction>
+            <Button type="button" variant="outline" size="xs" disabled={!enabled || pending} onClick={run}>
+              {analysis && <RefreshCw data-icon="inline-start" className={cn(pending && "animate-spin")} />}
+              {pending ? "Analiz ediliyor…" : analysis ? "Yenile" : "Analiz et"}
+            </Button>
+          </CardAction>
+        </CardHeader>
 
-        <div className="space-y-4 p-5 text-sm">
+        <CardContent className="space-y-4 pt-4 text-sm">
           {!enabled && (
-            <p className="rounded-lg bg-cream px-3 py-2 text-xs text-ink-2">
+            <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
               AI kapalı. Açmak için sunucuya <code className="font-mono">ANTHROPIC_API_KEY</code> eklenmeli.
             </p>
           )}
           {error && (
-            <p role="alert" className="text-brand">
-              {error}
-            </p>
+            <Alert variant="destructive" className="border-brand/40 text-brand">
+              <AlertCircle />
+              <AlertDescription className="text-brand">{error}</AlertDescription>
+            </Alert>
           )}
           {!analysis && enabled && !pending && (
-            <p className="text-ink-2">
-              Poliçeler, talepler, form cevapları ve notlara bakıp özet, ihtiyaçlar, ek satış önerileri ve sıradaki adımı çıkarır. Ad, telefon, e-posta, vergi no ve adres gönderilmez.
+            <p className="text-muted-foreground">
+              Poliçeler, talepler, form cevapları ve notlara bakıp özet, ihtiyaçlar, ek satış önerileri ve sıradaki adımı çıkarır. Ad, telefon, e-posta, vergi
+              no ve adres gönderilmez.
             </p>
           )}
-          {pending && !analysis && <p className="animate-pulse text-ink-2">Profil inceleniyor…</p>}
+          {pending && !analysis && <p className="animate-pulse text-muted-foreground">Profil inceleniyor…</p>}
 
           {analysis && (
             <div className={pending ? "opacity-50" : ""}>
@@ -80,16 +92,16 @@ export function AiAnalysis({
               {analysis.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {analysis.tags.map((t) => (
-                    <span key={t} className="chip border-[#d9c9f5] bg-[#f4effd] text-[#5b3a9b]">
+                    <Chip key={t} tone="border-[#d9c9f5] bg-[#f4effd] text-[#5b3a9b]">
                       {t}
-                    </span>
+                    </Chip>
                   ))}
                 </div>
               )}
 
               {analysis.needs.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="label">Muhtemel ihtiyaçlar</h3>
+                  <h3 className="mb-1.5 font-sans text-sm font-medium">Muhtemel ihtiyaçlar</h3>
                   <ul className="list-disc space-y-0.5 pl-5">
                     {analysis.needs.map((n) => (
                       <li key={n}>{n}</li>
@@ -98,17 +110,19 @@ export function AiAnalysis({
                 </div>
               )}
 
-              <div className="mt-4 rounded-lg border border-line p-3">
+              <div className="mt-4 rounded-lg border p-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-xs font-medium text-ink-2">Sıradaki adım</h3>
-                  <span className="chip border-navy-l bg-[#eef1f8] text-navy">{analysis.next_action.when}</span>
+                  <h3 className="font-sans text-xs font-medium text-muted-foreground">Sıradaki adım</h3>
+                  <Chip tone="border-navy-l bg-[#eef1f8] text-navy">{analysis.next_action.when}</Chip>
                 </div>
                 <p className="mt-1 font-medium">{analysis.next_action.title}</p>
-                <p className="text-xs text-ink-2">{analysis.next_action.detail}</p>
-                <button
+                <p className="text-xs text-muted-foreground">{analysis.next_action.detail}</p>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="xs"
                   disabled={alarmSet}
-                  className="btn-ghost mt-2 px-2.5 py-1 text-xs"
+                  className="mt-2"
                   onClick={() =>
                     start(async () => {
                       const days = WHEN_DAYS[analysis.next_action.when] ?? 1;
@@ -122,16 +136,18 @@ export function AiAnalysis({
                     })
                   }
                 >
-                  {alarmSet ? "✓ Alarm kuruldu" : "Alarm kur"}
-                </button>
+                  {alarmSet ? <Check data-icon="inline-start" /> : <AlarmClock data-icon="inline-start" />}
+                  {alarmSet ? "Alarm kuruldu" : "Alarm kur"}
+                </Button>
               </div>
 
-              <div className="mt-4 rounded-lg bg-cream-l p-3">
-                <h3 className="text-xs font-medium text-ink-2">Önerilen WhatsApp mesajı</h3>
+              <div className="mt-4 rounded-lg bg-muted/60 p-3">
+                <h3 className="font-sans text-xs font-medium text-muted-foreground">Önerilen WhatsApp mesajı</h3>
                 <p className="mt-1 whitespace-pre-wrap">{analysis.suggested_message}</p>
-                <button
+                <Button
                   type="button"
-                  className="btn-wa mt-2 px-2.5 py-1 text-xs"
+                  size="xs"
+                  className="mt-2 bg-wa text-white hover:bg-wa/90"
                   onClick={() => {
                     const win = window.open("about:blank", "_blank");
                     start(async () => {
@@ -141,21 +157,26 @@ export function AiAnalysis({
                     });
                   }}
                 >
-                  WhatsApp'ta aç
-                </button>
+                  <MessageCircle data-icon="inline-start" />
+                  WhatsApp&apos;ta aç
+                </Button>
               </div>
 
-              <p className="mt-3 text-xs text-ink-2">
+              <p className="mt-3 text-xs text-muted-foreground">
                 {isCustomer ? "Kaybetme riski" : "Vazgeçme riski"}:{" "}
-                <b className={analysis.churn_risk.level === "yüksek" ? "text-brand" : analysis.churn_risk.level === "orta" ? "text-amber-700" : "text-emerald-700"}>
+                <b
+                  className={
+                    analysis.churn_risk.level === "yüksek" ? "text-brand" : analysis.churn_risk.level === "orta" ? "text-amber-700" : "text-emerald-700"
+                  }
+                >
                   {analysis.churn_risk.level}
                 </b>{" "}
                 — {analysis.churn_risk.reason}
               </p>
             </div>
           )}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {analysis && analysis.cross_sell.length > 0 && (
         <CrossSell contactId={contactId} has={[]} suggestions={analysis.cross_sell} title="AI'ın önerdiği ürünler" />

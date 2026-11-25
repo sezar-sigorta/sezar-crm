@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { ChevronRight, MoreHorizontal, Plus, RefreshCw } from "lucide-react";
 import { cancelPolicy, deletePolicy, renewPolicy, savePolicy } from "@/app/(app)/actions";
 import type { Policy } from "@/db/schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { productLabel } from "@/lib/constants";
 import { fmtYmd } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Chip } from "./chips";
 import { Modal } from "./modal";
 import { PolicyFields } from "./policy-fields";
 import { RenewalBadge } from "./renewal-badge";
@@ -20,116 +30,139 @@ export function PoliciesPanel({ contactId, policies }: { contactId: string; poli
   const total = active.reduce((a, p) => a + (p.premium ? Number(p.premium) : 0), 0);
 
   return (
-    <section className="card overflow-hidden" aria-labelledby="pol-h">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-3.5">
-        <h2 id="pol-h" className="text-base font-semibold">
+    <Card role="region" className="gap-0 pb-0" aria-labelledby="pol-h">
+      <CardHeader className="border-b">
+        <CardTitle id="pol-h" className="font-display text-base font-semibold">
           Poliçeler
-        </h2>
-        <span className="text-xs text-ink-2">
+        </CardTitle>
+        <CardDescription className="text-xs">
           {active.length} aktif{total > 0 && ` · toplam prim ${total.toLocaleString("tr-TR")} ₺`}
-        </span>
-        <button type="button" className="btn-primary ml-auto py-1.5" onClick={() => setEdit("new")}>
-          + Poliçe ekle
-        </button>
-      </div>
+        </CardDescription>
+        <CardAction>
+          <Button type="button" size="sm" onClick={() => setEdit("new")}>
+            <Plus data-icon="inline-start" />
+            Poliçe ekle
+          </Button>
+        </CardAction>
+      </CardHeader>
 
       {active.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-ink-2">Aktif poliçe yok. Kesilen poliçeyi ekleyince yenileme alarmları otomatik kurulur.</p>
+        <p className="px-5 py-8 text-center text-sm text-muted-foreground">Aktif poliçe yok. Kesilen poliçeyi ekleyince yenileme alarmları otomatik kurulur.</p>
       ) : (
-        <ul className="divide-y divide-line">
-          {active.map((p) => (
-            <PolicyRow key={p.id} p={p} onEdit={() => setEdit(p)} />
-          ))}
-        </ul>
+        <PolicyTable policies={active} onEdit={setEdit} />
       )}
 
       {old.length > 0 && (
-        <div className="border-t border-line px-5 py-3">
-          <button type="button" className="text-xs text-ink-2 hover:text-navy" onClick={() => setShowOld((s) => !s)} aria-expanded={showOld}>
-            {showOld ? "▾" : "▸"} Geçmiş poliçeler ({old.length})
-          </button>
-          {showOld && (
-            <ul className="mt-2 divide-y divide-line">
-              {old.map((p) => (
-                <PolicyRow key={p.id} p={p} onEdit={() => setEdit(p)} muted />
-              ))}
-            </ul>
-          )}
+        <div className="border-t">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mx-2 my-1.5 text-muted-foreground"
+            onClick={() => setShowOld((s) => !s)}
+            aria-expanded={showOld}
+          >
+            <ChevronRight data-icon="inline-start" className={cn("transition-transform", showOld && "rotate-90")} />
+            Geçmiş poliçeler ({old.length})
+          </Button>
+          {showOld && <PolicyTable policies={old} onEdit={setEdit} muted />}
         </div>
       )}
 
       {edit && <PolicyDialog contactId={contactId} p={edit === "new" ? undefined : edit} onClose={() => setEdit(null)} />}
-    </section>
+    </Card>
   );
 }
 
-function PolicyRow({ p, onEdit, muted }: { p: Policy; onEdit: () => void; muted?: boolean }) {
-  const [pending, start] = useTransition();
-  const [menu, setMenu] = useState(false);
+function PolicyTable({ policies, onEdit, muted }: { policies: Policy[]; onEdit: (p: Policy) => void; muted?: boolean }) {
   return (
-    <li className={`flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 ${pending ? "opacity-60" : ""} ${muted ? "px-0 text-ink-2" : ""}`}>
-      <div className="min-w-40 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-navy">{productLabel(p.product)}</span>
-          {p.insurer && <span className="text-sm text-ink-2">· {p.insurer}</span>}
-          {p.status !== "active" && <span className="chip border-line bg-cream-l text-ink-2">{STATUS[p.status]}</span>}
+    <Table className={cn(muted && "text-muted-foreground")}>
+      <TableHeader className={cn(muted && "sr-only")}>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="pl-4 text-xs text-muted-foreground">Poliçe</TableHead>
+          <TableHead className="text-xs text-muted-foreground">Yenileme</TableHead>
+          <TableHead className="pr-4 text-right text-xs text-muted-foreground">
+            <span className="sr-only">İşlemler</span>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {policies.map((p) => (
+          <PolicyRow key={p.id} p={p} onEdit={() => onEdit(p)} />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function PolicyRow({ p, onEdit }: { p: Policy; onEdit: () => void }) {
+  const [pending, start] = useTransition();
+  const active = p.status === "active";
+  return (
+    <TableRow className={cn(pending && "opacity-60")}>
+      <TableCell className="min-w-44 pl-4 whitespace-normal">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className={cn("font-medium", active ? "text-navy" : "text-muted-foreground")}>{productLabel(p.product)}</span>
+          {p.insurer && <span className="text-muted-foreground">· {p.insurer}</span>}
+          {!active && <Chip tone="border-line bg-cream-l text-ink-2">{STATUS[p.status]}</Chip>}
         </div>
-        <div className="text-xs text-ink-2">
-          {[p.policyNo && `No ${p.policyNo}`, p.subject, p.premium && `${Number(p.premium).toLocaleString("tr-TR")} ₺`].filter(Boolean).join(" · ") || "Detay girilmemiş"}
+        <div className="mt-0.5 text-xs text-muted-foreground">
+          {[p.policyNo && `No ${p.policyNo}`, p.subject, p.premium && `${Number(p.premium).toLocaleString("tr-TR")} ₺`].filter(Boolean).join(" · ") ||
+            "Detay girilmemiş"}
         </div>
-      </div>
-      <div className="text-sm">
-        <div className="text-xs text-ink-2">{p.startDate ? `${fmtYmd(p.startDate)} →` : "Yenileme"}</div>
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          <span className="font-medium">{fmtYmd(p.endDate)}</span>
-          {p.status === "active" && <RenewalBadge ymd={p.endDate} />}
+      </TableCell>
+      <TableCell>
+        <div className="text-xs text-muted-foreground">{p.startDate ? `${fmtYmd(p.startDate)} →` : "Yenileme"}</div>
+        <div className="flex items-center gap-2">
+          <span className="font-medium tabular-nums">{fmtYmd(p.endDate)}</span>
+          {active && <RenewalBadge ymd={p.endDate} />}
         </div>
-      </div>
-      <div className="relative flex gap-1">
-        {p.status === "active" && (
-          <button
-            type="button"
-            className="btn-ghost px-2.5 py-1 text-xs"
-            title="Bu poliçeyi kapatır, aynı bilgilerle 1 yıllık yenisini açar"
-            onClick={() => start(() => renewPolicy(p.id))}
-          >
-            Yenilendi
-          </button>
-        )}
-        <button type="button" className="btn-ghost px-2.5 py-1 text-xs" onClick={onEdit}>
-          Düzenle
-        </button>
-        <button type="button" className="btn-ghost px-2 py-1 text-xs" aria-label="Diğer işlemler" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
-          ⋯
-        </button>
-        {menu && (
-          <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-lg border border-line bg-white p-1 shadow-lg">
-            {p.status === "active" && (
-              <button
-                type="button"
-                className="w-full rounded px-3 py-1.5 text-left text-sm hover:bg-cream"
-                onClick={() => {
-                  setMenu(false);
-                  if (confirm(`${productLabel(p.product)} poliçesi iptal edildi olarak işaretlensin mi?`)) start(() => cancelPolicy(p.id));
+      </TableCell>
+      <TableCell className="pr-4">
+        <div className="flex justify-end gap-1">
+          {active && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button type="button" variant="outline" size="xs" disabled={pending} onClick={() => start(() => renewPolicy(p.id))}>
+                  <RefreshCw data-icon="inline-start" />
+                  Yenilendi
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Bu poliçeyi kapatır, aynı bilgilerle 1 yıllık yenisini açar</TooltipContent>
+            </Tooltip>
+          )}
+          <Button type="button" variant="ghost" size="xs" onClick={onEdit}>
+            Düzenle
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="ghost" size="icon-xs" aria-label="Diğer işlemler" disabled={pending}>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              {active && (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    if (confirm(`${productLabel(p.product)} poliçesi iptal edildi olarak işaretlensin mi?`)) start(() => cancelPolicy(p.id));
+                  }}
+                >
+                  İptal edildi
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => {
+                  if (confirm(`${productLabel(p.product)} poliçesi ve alarmları silinsin mi? Bu geri alınamaz.`)) start(() => deletePolicy(p.id));
                 }}
               >
-                İptal edildi
-              </button>
-            )}
-            <button
-              type="button"
-              className="w-full rounded px-3 py-1.5 text-left text-sm text-brand hover:bg-cream"
-              onClick={() => {
-                setMenu(false);
-                if (confirm(`${productLabel(p.product)} poliçesi ve alarmları silinsin mi? Bu geri alınamaz.`)) start(() => deletePolicy(p.id));
-              }}
-            >
-              Sil
-            </button>
-          </div>
-        )}
-      </div>
-    </li>
+                Sil
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -160,30 +193,28 @@ export function PolicyDialog({
       onClose={onClose}
       wide
     >
-      <form {...formProps} className="space-y-4">
+      <form {...formProps} className="grid gap-4">
         <input type="hidden" name="contactId" value={contactId} />
         {p && <input type="hidden" name="id" value={p.id} />}
         {documentId && <input type="hidden" name="documentId" value={documentId} />}
         {notice}
         <PolicyFields p={p ?? prefill} idPrefix={p ? `pe-${p.id.slice(0, 6)}` : prefill ? "pa" : "pn"} />
-        <div>
-          <label className="label" htmlFor="pol-notes">
-            Not
-          </label>
-          <textarea id="pol-notes" name="notes" rows={2} defaultValue={(p ?? prefill)?.notes ?? ""} className="input resize-y" />
+        <div className="grid gap-1.5">
+          <Label htmlFor="pol-notes">Not</Label>
+          <Textarea id="pol-notes" name="notes" rows={2} defaultValue={(p ?? prefill)?.notes ?? ""} className="resize-y" />
         </div>
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {state?.error && (
             <span role="alert" className="mr-auto text-sm text-brand">
               {state.error}
             </span>
           )}
-          <button type="button" className="btn-ghost" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Vazgeç
-          </button>
-          <button className="btn-primary" disabled={pending}>
+          </Button>
+          <Button type="submit" disabled={pending}>
             {pending ? "Kaydediliyor…" : "Kaydet"}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

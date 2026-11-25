@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import type { Policy } from "@/db/schema";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { INSURERS, PRODUCTS } from "@/lib/constants";
 import { addYearsYmd } from "@/lib/format";
 
@@ -12,37 +15,33 @@ export function PolicyFields({ p, defaultProduct, idPrefix = "pf" }: { p?: Parti
   const id = (n: string) => `${idPrefix}-${n}`;
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <div>
-        <label className="label" htmlFor={id("product")}>
-          Poliçe türü *
-        </label>
-        <select id={id("product")} name="product" required defaultValue={p?.product ?? defaultProduct ?? ""} className="input">
-          <option value="" disabled>
-            Seçin
-          </option>
-          {PRODUCTS.filter((x) => x.code !== "genel").map((x) => (
-            <option key={x.code} value={x.code}>
-              {x.label}
-            </option>
-          ))}
-        </select>
+      <div className="grid gap-1.5">
+        <Label htmlFor={id("product")}>Poliçe türü *</Label>
+        <Select name="product" required defaultValue={p?.product ?? defaultProduct ?? undefined}>
+          <SelectTrigger id={id("product")} className="w-full">
+            <SelectValue placeholder="Seçin" />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            {PRODUCTS.filter((x) => x.code !== "genel").map((x) => (
+              <SelectItem key={x.code} value={x.code}>
+                {x.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <div>
-        <label className="label" htmlFor={id("insurer")}>
-          Sigorta şirketi
-        </label>
-        <input id={id("insurer")} name="insurer" list="sz-insurers" defaultValue={p?.insurer ?? ""} className="input" autoComplete="off" />
+      <div className="grid gap-1.5">
+        <Label htmlFor={id("insurer")}>Sigorta şirketi</Label>
+        <Input id={id("insurer")} name="insurer" list="sz-insurers" defaultValue={p?.insurer ?? ""} autoComplete="off" />
         <datalist id="sz-insurers">
           {INSURERS.map((i) => (
             <option key={i} value={i} />
           ))}
         </datalist>
       </div>
-      <div>
-        <label className="label" htmlFor={id("start")}>
-          Başlangıç
-        </label>
-        <input
+      <div className="grid gap-1.5">
+        <Label htmlFor={id("start")}>Başlangıç</Label>
+        <Input
           id={id("start")}
           name="startDate"
           type="date"
@@ -51,38 +50,23 @@ export function PolicyFields({ p, defaultProduct, idPrefix = "pf" }: { p?: Parti
             setStart(e.target.value);
             if (e.target.value && !end) setEnd(addYearsYmd(e.target.value, 1));
           }}
-          className="input"
         />
       </div>
-      <div>
-        <label className="label" htmlFor={id("end")}>
-          Yenileme (bitiş) tarihi *
-        </label>
-        <input id={id("end")} name="endDate" type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="input" />
+      <div className="grid gap-1.5">
+        <Label htmlFor={id("end")}>Yenileme (bitiş) tarihi *</Label>
+        <Input id={id("end")} name="endDate" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
       </div>
-      <div>
-        <label className="label" htmlFor={id("no")}>
-          Poliçe no
-        </label>
-        <input id={id("no")} name="policyNo" defaultValue={p?.policyNo ?? ""} className="input" />
+      <div className="grid gap-1.5">
+        <Label htmlFor={id("no")}>Poliçe no</Label>
+        <Input id={id("no")} name="policyNo" defaultValue={p?.policyNo ?? ""} />
       </div>
-      <div>
-        <label className="label" htmlFor={id("premium")}>
-          Prim (₺)
-        </label>
-        <input
-          id={id("premium")}
-          name="premium"
-          inputMode="decimal"
-          defaultValue={p?.premium ? Number(p.premium).toLocaleString("tr-TR") : ""}
-          className="input"
-        />
+      <div className="grid gap-1.5">
+        <Label htmlFor={id("premium")}>Prim (₺)</Label>
+        <Input id={id("premium")} name="premium" inputMode="decimal" defaultValue={p?.premium ? Number(p.premium).toLocaleString("tr-TR") : ""} />
       </div>
-      <div className="sm:col-span-2">
-        <label className="label" htmlFor={id("subject")}>
-          Sigortalanan
-        </label>
-        <input id={id("subject")} name="subject" defaultValue={p?.subject ?? ""} placeholder="Plaka, adres, kişiler…" className="input" />
+      <div className="grid gap-1.5 sm:col-span-2">
+        <Label htmlFor={id("subject")}>Sigortalanan</Label>
+        <Input id={id("subject")} name="subject" defaultValue={p?.subject ?? ""} placeholder="Plaka, adres, kişiler…" />
       </div>
     </div>
   );

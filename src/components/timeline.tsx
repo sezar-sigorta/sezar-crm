@@ -4,7 +4,17 @@ import { useEffect, useState } from "react";
 import { logActivity } from "@/app/(app)/actions";
 import { NOTE_STATUSES, NOTE_TOPICS, PRODUCTS, productLabel } from "@/lib/constants";
 import { ago, fmtDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useFormAction } from "./use-form-action";
+
+/** Radix Select items can't have an empty value; this stands for "Genel" / "Seçiniz" and posts "". */
+const NONE = "__none";
 
 type Act = {
   id: string;
@@ -48,11 +58,13 @@ export function Timeline({
   const noteCount = activities.filter(isNote).length;
 
   return (
-    <section className="card">
+    <Card className="gap-0 pt-0">
       <NoteForm contactId={contactId} ownProducts={ownProducts} />
 
-      <div className="flex flex-wrap items-center gap-2 px-4 pt-4">
-        <h2 className="mr-auto text-base font-semibold">{title}</h2>
+      <CardHeader className="flex flex-wrap items-center gap-2 pt-4">
+        <CardTitle className="mr-auto font-display text-base font-semibold">
+          <h2>{title}</h2>
+        </CardTitle>
         {(
           [
             ["all", "Tümü"],
@@ -60,44 +72,48 @@ export function Timeline({
             ["call", "Görüşmeler"],
           ] as const
         ).map(([v, l]) => (
-          <button
+          <Button
             key={v}
             type="button"
+            size="xs"
+            variant={filter === v ? "default" : "outline"}
             aria-pressed={filter === v}
             onClick={() => setFilter(v)}
-            className={`rounded-full border px-2.5 py-0.5 text-xs ${filter === v ? "border-navy bg-navy text-cream" : "border-line text-ink-2 hover:text-navy"}`}
+            className={cn("rounded-full", filter !== v && "text-muted-foreground")}
           >
             {l}
-          </button>
+          </Button>
         ))}
-      </div>
-      <ol className="p-4">
-        {shown.length === 0 && <li className="text-sm text-ink-2">Kayıt yok.</li>}
-        {shown.map((a) => {
-          const ic = ICON[a.type] ?? ICON.system;
-          const tags = tagsOf(a, labels);
-          return (
-            <li key={a.id} className="flex gap-3 pb-4 pl-1 last:pb-0">
-              <span className={`mt-0.5 h-fit shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${ic.tone}`}>{ic.label}</span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm break-words whitespace-pre-wrap">{a.body}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-2">
-                  {tags.map((t) => (
-                    <span key={t} className="rounded border border-line bg-cream-l px-1.5 py-px text-[11px] text-navy">
-                      {t}
+      </CardHeader>
+      <CardContent className="pt-4">
+        <ol>
+          {shown.length === 0 && <li className="text-sm text-muted-foreground">Kayıt yok.</li>}
+          {shown.map((a) => {
+            const ic = ICON[a.type] ?? ICON.system;
+            const tags = tagsOf(a, labels);
+            return (
+              <li key={a.id} className="flex gap-3 pb-4 pl-1 last:pb-0">
+                <Badge className={cn("mt-0.5 rounded-md px-1.5 text-[11px]", ic.tone)}>{ic.label}</Badge>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm break-words whitespace-pre-wrap">{a.body}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    {tags.map((t) => (
+                      <Badge key={t} variant="outline" className="h-auto rounded px-1.5 py-px text-[11px] font-normal text-navy bg-cream-l">
+                        {t}
+                      </Badge>
+                    ))}
+                    <span title={fmtDateTime(a.createdAt)}>
+                      {ago(a.createdAt)}
+                      {a.userName && ` · ${a.userName}`}
                     </span>
-                  ))}
-                  <span title={fmtDateTime(a.createdAt)}>
-                    {ago(a.createdAt)}
-                    {a.userName && ` · ${a.userName}`}
-                  </span>
+                  </div>
                 </div>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
+              </li>
+            );
+          })}
+        </ol>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -129,61 +145,90 @@ function NoteForm({ contactId, ownProducts }: { contactId: string; ownProducts: 
   const others = PRODUCTS.filter((p) => p.code !== "genel" && !ownProducts.includes(p.code));
 
   return (
-    <form {...formProps} className="@container space-y-3 border-b border-line p-4">
+    <form {...formProps} className="@container grid gap-3 border-b p-4">
       <input type="hidden" name="contactId" value={contactId} />
+      <input type="hidden" name="product" value={product} />
+      <input type="hidden" name="topic" value={topic} />
       <div className="grid gap-2 @lg:grid-cols-3">
-        <label className="text-xs text-ink-2">
-          İlgili poliçe
-          <select name="product" value={product} onChange={(e) => setProduct(e.target.value)} className="input mt-1">
-            <option value="">Genel</option>
-            {ownProducts.length > 0 && (
-              <optgroup label="Bu kişide olanlar">
-                {ownProducts.map((p) => (
-                  <option key={p} value={p}>
-                    {productLabel(p)}
-                  </option>
+        <div className="grid gap-1.5">
+          <Label htmlFor={`nf-product-${contactId}`} className="text-xs font-normal text-muted-foreground">
+            İlgili poliçe
+          </Label>
+          <Select value={product || NONE} onValueChange={(v) => setProduct(v === NONE ? "" : v)}>
+            <SelectTrigger id={`nf-product-${contactId}`} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectItem value={NONE}>Genel</SelectItem>
+              {ownProducts.length > 0 && (
+                <>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Bu kişide olanlar</SelectLabel>
+                    {ownProducts.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {productLabel(p)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </>
+              )}
+              <SelectSeparator />
+              <SelectGroup>
+                <SelectLabel>{ownProducts.length ? "Diğer poliçeler" : "Poliçeler"}</SelectLabel>
+                {others.map((p) => (
+                  <SelectItem key={p.code} value={p.code}>
+                    {p.label}
+                  </SelectItem>
                 ))}
-              </optgroup>
-            )}
-            <optgroup label={ownProducts.length ? "Diğer poliçeler" : "Poliçeler"}>
-              {others.map((p) => (
-                <option key={p.code} value={p.code}>
-                  {p.label}
-                </option>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor={`nf-topic-${contactId}`} className="text-xs font-normal text-muted-foreground">
+            Sebep
+          </Label>
+          <Select value={topic || NONE} onValueChange={(v) => setTopic(v === NONE ? "" : v)}>
+            <SelectTrigger id={`nf-topic-${contactId}`} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectItem value={NONE}>Seçiniz</SelectItem>
+              {NOTE_TOPICS.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
               ))}
-            </optgroup>
-          </select>
-        </label>
-        <label className="text-xs text-ink-2">
-          Sebep
-          <select name="topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="input mt-1">
-            <option value="">Seçiniz</option>
-            {NOTE_TOPICS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-ink-2">
-          Durum
-          <select name="status" value={status} onChange={(e) => setStatus(e.target.value)} className="input mt-1">
-            {NOTE_STATUSES.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor={`nf-status-${contactId}`} className="text-xs font-normal text-muted-foreground">
+            Durum
+          </Label>
+          <Select name="status" value={status} onValueChange={setStatus}>
+            <SelectTrigger id={`nf-status-${contactId}`} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {NOTE_STATUSES.map((s) => (
+                <SelectItem key={s.code} value={s.code}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <textarea
+      <Textarea
         name="body"
         rows={2}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         placeholder={status === "note" ? "Not…" : "Görüşme notu (isteğe bağlı)"}
-        className="input resize-y"
+        className="min-h-16 resize-y"
         aria-label="Not"
       />
 
@@ -193,9 +238,9 @@ function NoteForm({ contactId, ownProducts }: { contactId: string; ownProducts: 
             {state.error}
           </span>
         )}
-        <button className="btn-primary" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Kaydediliyor…" : "Kaydet"}
-        </button>
+        </Button>
       </div>
     </form>
   );

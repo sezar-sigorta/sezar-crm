@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { UserCheck } from "lucide-react";
 import { convertToCustomer } from "@/app/(app)/actions";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Modal } from "./modal";
 import { PolicyFields } from "./policy-fields";
 import { useFormAction } from "./use-form-action";
@@ -21,13 +25,16 @@ export function ConvertButton({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={size === "sm" ? "btn-ghost px-2.5 py-1 text-xs whitespace-nowrap" : "btn-brand"}
-      >
-        Müşteriye dönüştür
-      </button>
+      {size === "sm" ? (
+        <Button type="button" variant="ghost" size="xs" onClick={() => setOpen(true)}>
+          Müşteriye dönüştür
+        </Button>
+      ) : (
+        <Button type="button" className="bg-brand text-white hover:bg-brand/90" onClick={() => setOpen(true)}>
+          <UserCheck data-icon="inline-start" />
+          Müşteriye dönüştür
+        </Button>
+      )}
       {open && <ConvertDialog contactId={contactId} name={name} defaultProduct={defaultProduct} onClose={() => setOpen(false)} />}
     </>
   );
@@ -36,28 +43,35 @@ export function ConvertButton({
 function ConvertDialog({ contactId, name, defaultProduct, onClose }: { contactId: string; name: string; defaultProduct?: string; onClose: () => void }) {
   const [state, formProps, pending] = useFormAction(convertToCustomer);
   const [withPolicy, setWithPolicy] = useState(true);
+  const checkId = `cv-add-${contactId.slice(0, 6)}`;
 
   return (
-    <Modal title={`${name} müşteri olsun`} sub="Kişi Müşteriler listesine geçer. Kesilen poliçeyi şimdi eklerseniz yenileme alarmları otomatik kurulur." onClose={onClose} wide>
-      <form {...formProps} className="space-y-4">
+    <Modal
+      title={`${name} müşteri olsun`}
+      sub="Kişi Müşteriler listesine geçer. Kesilen poliçeyi şimdi eklerseniz yenileme alarmları otomatik kurulur."
+      onClose={onClose}
+      wide
+    >
+      <form {...formProps} className="grid gap-4">
         <input type="hidden" name="contactId" value={contactId} />
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" name="addPolicy" checked={withPolicy} onChange={(e) => setWithPolicy(e.target.checked)} className="accent-navy" />
+        <Label htmlFor={checkId} className="cursor-pointer">
+          {/* Posts addPolicy=on when checked, like the native checkbox did. */}
+          <Checkbox id={checkId} name="addPolicy" checked={withPolicy} onCheckedChange={(v) => setWithPolicy(v === true)} />
           Kesilen poliçeyi şimdi ekle
-        </label>
+        </Label>
         {withPolicy && <PolicyFields defaultProduct={defaultProduct} idPrefix={`cv-${contactId.slice(0, 6)}`} />}
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {state?.error && (
             <span role="alert" className="mr-auto text-sm text-brand">
               {state.error}
             </span>
           )}
-          <button type="button" className="btn-ghost" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Vazgeç
-          </button>
-          <button className="btn-primary" disabled={pending}>
+          </Button>
+          <Button type="submit" disabled={pending}>
             {pending ? "Kaydediliyor…" : "Müşteriye dönüştür"}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

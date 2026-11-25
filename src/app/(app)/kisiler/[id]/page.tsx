@@ -17,6 +17,10 @@ import { OPEN_STAGES, productLabel, sourceLabel } from "@/lib/constants";
 import { durationSince, fmtDate, fmtDateTime, fmtYmd } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { contactDetail } from "@/lib/queries";
+import { AlertTriangle, ChevronRight } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export const dynamic = "force-dynamic";
 
@@ -40,11 +44,20 @@ function labelsOf(d: Detail) {
 
 function Breadcrumb({ customer, name }: { customer: boolean; name: string }) {
   return (
-    <nav className="mb-3 text-sm text-ink-2">
-      <Link href={customer ? "/musteriler" : "/leadler"} className="hover:text-navy">
-        {customer ? "Müşteriler" : "Leadler"}
-      </Link>{" "}
-      / <span className="text-navy">{name}</span>
+    <nav aria-label="Konum" className="mb-3 text-sm text-muted-foreground">
+      <ol className="flex min-w-0 items-center gap-1">
+        <li>
+          <Link href={customer ? "/musteriler" : "/leadler"} className="hover:text-foreground">
+            {customer ? "Müşteriler" : "Leadler"}
+          </Link>
+        </li>
+        <li aria-hidden="true">
+          <ChevronRight className="size-3.5" />
+        </li>
+        <li aria-current="page" className="truncate text-foreground">
+          {name}
+        </li>
+      </ol>
     </nav>
   );
 }
@@ -55,53 +68,69 @@ function ContactLine({ c }: { c: Detail["contact"] }) {
       {c.kind === "kurumsal" && (
         <span className="text-navy">
           Yetkili: <b className="font-medium">{c.contactPerson ?? "—"}</b>
-          {c.contactTitle && <span className="text-ink-2"> ({c.contactTitle})</span>}
+          {c.contactTitle && <span className="text-muted-foreground"> ({c.contactTitle})</span>}
         </span>
       )}
       <a href={`tel:+90${c.phone}`} className="font-medium text-navy tabular-nums hover:underline">
         {formatPhone(c.phone)}
       </a>
       {c.email ? (
-        <a href={`mailto:${c.email}`} className="text-navy hover:underline">
+        <a href={`mailto:${c.email}`} className="break-all text-navy hover:underline">
           {c.email}
         </a>
       ) : (
-        <span className="text-ink-2">E-posta yok</span>
+        <span className="text-muted-foreground">E-posta yok</span>
       )}
-      {c.city && <span className="text-ink-2">{c.city}</span>}
+      {c.city && <span className="text-muted-foreground">{c.city}</span>}
     </div>
   );
 }
 
 function Consents({ c }: { c: Detail["contact"] }) {
   return (
-    <section className="card p-5 text-sm">
-      <h2 className="mb-2 text-base font-semibold">İzinler (KVKK)</h2>
-      <dl className="space-y-1.5">
-        <div className="flex justify-between gap-3">
-          <dt className="text-ink-2">Aydınlatma / iletişim onayı</dt>
-          <dd className={c.kvkkConsent ? "text-emerald-700" : "text-brand"}>{c.kvkkConsent ? `Var · ${fmtDateTime(c.kvkkConsentAt)}` : "Yok"}</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-ink-2">Ticari ileti (kampanya) izni</dt>
-          <dd className={c.marketingConsent ? "text-emerald-700" : "text-ink-2"}>{c.marketingConsent ? `Var · ${fmtDateTime(c.marketingConsentAt)}` : "Yok"}</dd>
-        </div>
-      </dl>
-      {!c.marketingConsent && (
-        <p className="mt-3 rounded-lg bg-cream px-3 py-2 text-xs text-ink-2">
-          Ticari ileti izni olmadan bu kişiye kampanya mesajı gönderilmemeli. Yalnızca talebi ve poliçeleriyle ilgili iletişim kurulabilir.
-        </p>
-      )}
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-base font-semibold">
+          <h2>İzinler (KVKK)</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <dl className="space-y-1.5">
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">Aydınlatma / iletişim onayı</dt>
+            <dd className={c.kvkkConsent ? "text-right text-emerald-700" : "text-right text-brand"}>
+              {c.kvkkConsent ? `Var · ${fmtDateTime(c.kvkkConsentAt)}` : "Yok"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">Ticari ileti (kampanya) izni</dt>
+            <dd className={c.marketingConsent ? "text-right text-emerald-700" : "text-right text-muted-foreground"}>
+              {c.marketingConsent ? `Var · ${fmtDateTime(c.marketingConsentAt)}` : "Yok"}
+            </dd>
+          </div>
+        </dl>
+        {!c.marketingConsent && (
+          <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+            Ticari ileti izni olmadan bu kişiye kampanya mesajı gönderilmemeli. Yalnızca talebi ve poliçeleriyle ilgili iletişim kurulabilir.
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
 function ProfileCard({ c }: { c: Detail["contact"] }) {
   return (
-    <section className="card p-5">
-      <h2 className="mb-3 text-base font-semibold">Profil bilgileri</h2>
-      <ContactEditForm c={c} />
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-base font-semibold">
+          <h2>Profil bilgileri</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ContactEditForm c={c} />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -115,66 +144,69 @@ function LeadProfile({ d }: { d: Detail }) {
   return (
     <>
       <Breadcrumb customer={false} name={c.fullName} />
-      <header className="card mb-6 p-5">
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold">{c.fullName}</h1>
-              <LifecycleChip value="lead" />
-              <KindChip kind={c.kind} />
+      <Card className="mb-6">
+        <CardContent>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="min-w-0 flex-1 basis-64">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-semibold break-words">{c.fullName}</h1>
+                <LifecycleChip value="lead" />
+                <KindChip kind={c.kind} />
+              </div>
+              <ContactLine c={c} />
             </div>
-            <ContactLine c={c} />
+            <div className="flex flex-wrap items-center gap-2">
+              <ContactQuickActions
+                contactId={c.id}
+                phone={c.phone}
+                email={c.email}
+                kind="lead"
+                targets={open.map((r) => ({ key: r.id, label: productLabel(r.product), requestId: r.id }))}
+              />
+              <ConvertButton contactId={c.id} name={c.fullName} defaultProduct={open[0]?.product ?? requests[0]?.product} />
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ContactQuickActions
-              contactId={c.id}
-              phone={c.phone}
-              email={c.email}
-              kind="lead"
-              targets={open.map((r) => ({ key: r.id, label: productLabel(r.product), requestId: r.id }))}
-            />
-            <ConvertButton contactId={c.id} name={c.fullName} defaultProduct={open[0]?.product ?? requests[0]?.product} />
-          </div>
-        </div>
-        <dl className="mt-4 grid gap-4 border-t border-line pt-4 text-sm sm:grid-cols-3">
-          <div>
-            <dt className="text-xs text-ink-2">Geldiği kanal</dt>
-            <dd className="mt-1 space-y-1">
-              {channels.length === 0 && "—"}
-              {channels.map((r) => (
-                <div key={r.id} className="flex flex-wrap items-center gap-1.5">
-                  <SourceChip code={r.source} detail={r.sourceDetail} />
-                  {r.sourceDetail?.campaign && <span className="text-xs text-ink-2">{r.sourceDetail.campaign}</span>}
-                </div>
-              ))}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-2">Talep ettiği poliçeler</dt>
-            <dd className="mt-1 flex flex-wrap gap-1.5">
-              {requests.map((r) => (
-                <span key={r.id} className="inline-flex items-center gap-1">
-                  <ProductChip code={r.product} />
-                  <StageChip code={r.stage} status={r.callStatus} />
-                </span>
-              ))}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-2">İlk kayıt</dt>
-            <dd className="mt-1">
-              {fmtDate(c.createdAt)}
-              {c.preferredCallTime && <div className="text-xs text-ink-2">Arama tercihi: {c.preferredCallTime}</div>}
-            </dd>
-          </div>
-        </dl>
-        <CompanyInfo c={c} />
-      </header>
+          <Separator className="mt-4" />
+          <dl className="grid gap-4 pt-4 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-xs text-muted-foreground">Geldiği kanal</dt>
+              <dd className="mt-1 space-y-1">
+                {channels.length === 0 && "—"}
+                {channels.map((r) => (
+                  <div key={r.id} className="flex flex-wrap items-center gap-1.5">
+                    <SourceChip code={r.source} detail={r.sourceDetail} />
+                    {r.sourceDetail?.campaign && <span className="text-xs text-muted-foreground">{r.sourceDetail.campaign}</span>}
+                  </div>
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Talep ettiği poliçeler</dt>
+              <dd className="mt-1 flex flex-wrap gap-1.5">
+                {requests.map((r) => (
+                  <span key={r.id} className="inline-flex items-center gap-1">
+                    <ProductChip code={r.product} />
+                    <StageChip code={r.stage} status={r.callStatus} />
+                  </span>
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">İlk kayıt</dt>
+              <dd className="mt-1">
+                {fmtDate(c.createdAt)}
+                {c.preferredCallTime && <div className="text-xs text-muted-foreground">Arama tercihi: {c.preferredCallTime}</div>}
+              </dd>
+            </div>
+          </dl>
+          <CompanyInfo c={c} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-6">
           <section>
-            <h2 className="mb-3 text-base font-semibold">Talepler ({requests.length})</h2>
+            <h2 className="mb-3 font-display text-base font-semibold">Talepler ({requests.length})</h2>
             <div className="space-y-3">
               {requests.map((r) => (
                 <RequestCard key={r.id} r={r} team={team} />
@@ -219,33 +251,36 @@ function CustomerProfile({ d }: { d: Detail }) {
   return (
     <>
       <Breadcrumb customer name={c.fullName} />
-      <header className="card mb-6 p-5">
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold">{c.fullName}</h1>
-              <LifecycleChip value="customer" />
-              <KindChip kind={c.kind} />
+      <Card className="mb-6">
+        <CardContent>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="min-w-0 flex-1 basis-64">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-semibold break-words">{c.fullName}</h1>
+                <LifecycleChip value="customer" />
+                <KindChip kind={c.kind} />
+              </div>
+              <ContactLine c={c} />
             </div>
-            <ContactLine c={c} />
+            <div className="flex flex-wrap items-center gap-2">
+              <ContactQuickActions contactId={c.id} phone={c.phone} email={c.email} kind="customer" targets={targets} />
+              <RevertButton contactId={c.id} />
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ContactQuickActions contactId={c.id} phone={c.phone} email={c.email} kind="customer" targets={targets} />
-            <RevertButton contactId={c.id} />
-          </div>
-        </div>
-        <dl className="mt-4 grid gap-4 border-t border-line pt-4 text-sm sm:grid-cols-4">
-          <Stat label="Müşteri süresi" value={durationSince(c.customerSince)} hint={c.customerSince ? `Başlangıç: ${fmtDate(c.customerSince)}` : undefined} />
-          <Stat label="Aktif poliçe" value={String(active.length)} hint={active.map((p) => productLabel(p.product)).join(", ") || undefined} />
-          <Stat
-            label="Sonraki yenileme"
-            value={nextRenewal ? fmtYmd(nextRenewal.endDate) : "—"}
-            hint={nextRenewal ? productLabel(nextRenewal.product) : undefined}
-          />
-          <Stat label="İlk geliş" value={c.firstSource ? sourceLabel(c.firstSource) : "—"} hint={fmtDate(c.createdAt)} />
-        </dl>
-        <CompanyInfo c={c} />
-      </header>
+          <Separator className="mt-4" />
+          <dl className="grid grid-cols-2 gap-4 pt-4 text-sm sm:grid-cols-4">
+            <Stat label="Müşteri süresi" value={durationSince(c.customerSince)} hint={c.customerSince ? `Başlangıç: ${fmtDate(c.customerSince)}` : undefined} />
+            <Stat label="Aktif poliçe" value={String(active.length)} hint={active.map((p) => productLabel(p.product)).join(", ") || undefined} />
+            <Stat
+              label="Sonraki yenileme"
+              value={nextRenewal ? fmtYmd(nextRenewal.endDate) : "—"}
+              hint={nextRenewal ? productLabel(nextRenewal.product) : undefined}
+            />
+            <Stat label="İlk geliş" value={c.firstSource ? sourceLabel(c.firstSource) : "—"} hint={fmtDate(c.createdAt)} />
+          </dl>
+          <CompanyInfo c={c} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-6">
@@ -253,7 +288,7 @@ function CustomerProfile({ d }: { d: Detail }) {
           <DocumentsPanel contactId={c.id} contactName={c.fullName} documents={d.documents} policies={policies} aiEnabled={aiEnabled()} />
           {open.length > 0 && (
             <section>
-              <h2 className="mb-3 text-base font-semibold">Açık talepler ({open.length})</h2>
+              <h2 className="mb-3 font-display text-base font-semibold">Açık talepler ({open.length})</h2>
               <div className="space-y-3">
                 {open.map((r) => (
                   <RequestCard key={r.id} r={r} team={team} />
@@ -300,17 +335,21 @@ function CompanyInfo({ c }: { c: Detail["contact"] }) {
     ["Adres", c.address],
   ];
   return (
-    <div className="mt-4 border-t border-line pt-4">
+    <div className="mt-4">
+      <Separator className="mb-4" />
       {missingTitle && (
-        <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          Şirket unvanı girilmemiş; şimdilik yetkilinin adı gösteriliyor. Profil bilgilerinden ekleyin.
-        </p>
+        <Alert className="mb-3 border-amber-200 bg-amber-50 text-amber-800">
+          <AlertTriangle />
+          <AlertDescription className="text-xs text-amber-800">
+            Şirket unvanı girilmemiş; şimdilik yetkilinin adı gösteriliyor. Profil bilgilerinden ekleyin.
+          </AlertDescription>
+        </Alert>
       )}
-      <dl className="grid gap-3 text-sm sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         {rows.map(([k, v]) => (
           <div key={k} className="min-w-0">
-            <dt className="text-xs text-ink-2">{k}</dt>
-            <dd className={`mt-0.5 break-words ${v ? "" : "text-ink-2"}`}>{v ?? "—"}</dd>
+            <dt className="text-xs text-muted-foreground">{k}</dt>
+            <dd className={v ? "mt-0.5 break-words" : "mt-0.5 text-muted-foreground"}>{v ?? "—"}</dd>
           </div>
         ))}
       </dl>
@@ -333,9 +372,9 @@ function Ai({ d }: { d: Detail }) {
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-ink-2">{label}</dt>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 font-display text-lg font-semibold text-navy">{value}</dd>
-      {hint && <dd className="truncate text-xs text-ink-2">{hint}</dd>}
+      {hint && <dd className="truncate text-xs text-muted-foreground">{hint}</dd>}
     </div>
   );
 }
