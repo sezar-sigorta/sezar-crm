@@ -3,10 +3,21 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { addReminder, deleteReminder, setReminderDone, snoozeReminder } from "@/app/(app)/actions";
 import type { Reminder } from "@/db/schema";
+import { ChevronRight, Plus, Repeat, X } from "lucide-react";
 import { ago, fmtDateTime, toLocalInput, todayYmd } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useFormAction } from "./use-form-action";
 
 type Link = { value: string; label: string; field: "requestId" | "policyId" };
+
+/** Radix Select items can't have an empty value; this stands for "Genel (kişiye bağlı)". */
+const NONE = "__none";
 
 const QUICK_TITLES = ["Geri ara", "Teklif için dönüş al", "Belge / bilgi iste", "Yenileme teklifi hazırla", "Doğum günü tebriği"];
 
@@ -18,43 +29,56 @@ export function AlarmsPanel({ contactId, reminders, links }: { contactId: string
   const now = new Date();
 
   return (
-    <section className="card p-5" aria-labelledby="alarms-h">
-      <div className="mb-3 flex items-center gap-2">
-        <h2 id="alarms-h" className="text-base font-semibold">
+    <Card role="region" aria-labelledby="alarms-h">
+      <CardHeader>
+        <CardTitle id="alarms-h" className="font-display text-base font-semibold">
           Alarmlar
-        </h2>
-        {open.length > 0 && <span className="text-xs text-ink-2">{open.length} açık</span>}
+        </CardTitle>
+        {open.length > 0 && <CardDescription className="text-xs">{open.length} açık</CardDescription>}
         {!adding && (
-          <button type="button" className="btn-ghost ml-auto px-2.5 py-1 text-xs" onClick={() => setAdding(true)}>
-            + Alarm kur
-          </button>
+          <CardAction>
+            <Button type="button" variant="outline" size="xs" onClick={() => setAdding(true)}>
+              <Plus data-icon="inline-start" />
+              Alarm kur
+            </Button>
+          </CardAction>
         )}
-      </div>
+      </CardHeader>
+      <CardContent>
+        {adding && <AddAlarm contactId={contactId} links={links} onDone={() => setAdding(false)} canCancel={open.length > 0} />}
 
-      {adding && <AddAlarm contactId={contactId} links={links} onDone={() => setAdding(false)} canCancel={open.length > 0} />}
+        <ul className="space-y-2">
+          {open.map((r) => (
+            <AlarmRow key={r.id} r={r} overdue={r.dueAt < now} />
+          ))}
+          {open.length === 0 && !adding && <li className="text-sm text-muted-foreground">Açık alarm yok.</li>}
+        </ul>
 
-      <ul className="space-y-2">
-        {open.map((r) => (
-          <AlarmRow key={r.id} r={r} overdue={r.dueAt < now} />
-        ))}
-        {open.length === 0 && !adding && <li className="text-sm text-ink-2">Açık alarm yok.</li>}
-      </ul>
-
-      {done.length > 0 && (
-        <div className="mt-3 border-t border-line pt-3">
-          <button type="button" className="text-xs text-ink-2 hover:text-navy" onClick={() => setShowDone((s) => !s)} aria-expanded={showDone}>
-            {showDone ? "▾" : "▸"} Tamamlananlar ({done.length})
-          </button>
-          {showDone && (
-            <ul className="mt-2 space-y-2">
-              {done.map((r) => (
-                <AlarmRow key={r.id} r={r} overdue={false} />
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-    </section>
+        {done.length > 0 && (
+          <div className="mt-3">
+            <Separator className="mb-2" />
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              className="-ml-2 text-muted-foreground"
+              onClick={() => setShowDone((s) => !s)}
+              aria-expanded={showDone}
+            >
+              <ChevronRight data-icon="inline-start" className={cn("transition-transform", showDone && "rotate-90")} />
+              Tamamlananlar ({done.length})
+            </Button>
+            {showDone && (
+              <ul className="mt-2 space-y-2">
+                {done.map((r) => (
+                  <AlarmRow key={r.id} r={r} overdue={false} />
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -62,29 +86,50 @@ function AlarmRow({ r, overdue }: { r: Reminder; overdue: boolean }) {
   const [pending, start] = useTransition();
   const isDone = !!r.doneAt;
   return (
-    <li className={`flex items-start gap-2.5 rounded-lg border px-3 py-2 ${overdue ? "border-accent/40 bg-orange-50/60" : "border-line"} ${pending ? "opacity-60" : ""}`}>
-      <input
-        type="checkbox"
+    <li
+      className={cn(
+        "flex items-start gap-2.5 rounded-lg border px-3 py-2",
+        overdue ? "border-brand/40 bg-orange-50/60" : "border-border",
+        pending && "opacity-60",
+      )}
+    >
+      <Checkbox
         checked={isDone}
-        onChange={(e) => start(() => setReminderDone(r.id, e.target.checked))}
-        className="mt-1 size-4 shrink-0 accent-navy"
+        disabled={pending}
+        onCheckedChange={(v) => start(() => setReminderDone(r.id, v === true))}
+        className="mt-0.5"
         aria-label={isDone ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}
       />
       <div className="min-w-0 flex-1">
-        <p className={`text-sm leading-snug break-words ${isDone ? "text-ink-2 line-through" : ""}`}>{r.title}</p>
-        <p className={`mt-0.5 text-xs ${overdue ? "font-semibold text-accent" : "text-ink-2"}`}>
-          {r.kind === "renewal" && "🔁 "}
+        <p className={cn("text-sm leading-snug break-words", isDone && "text-muted-foreground line-through")}>{r.title}</p>
+        <p className={cn("mt-0.5 flex flex-wrap items-center gap-1 text-xs", overdue ? "font-semibold text-brand" : "text-muted-foreground")}>
+          {r.kind === "renewal" && <Repeat className="size-3" aria-label="Yenileme" />}
           {fmtDateTime(r.dueAt)} · {isDone ? `tamamlandı ${ago(r.doneAt)}` : overdue ? `gecikti, ${ago(r.dueAt)}` : ago(r.dueAt)}
         </p>
       </div>
       {!isDone && (
-        <div className="flex shrink-0 gap-1">
-          <button type="button" title="1 gün ertele" className="rounded px-1.5 py-0.5 text-xs text-ink-2 hover:bg-cream" onClick={() => start(() => snoozeReminder(r.id, 24))}>
+        <div className="-mr-1 flex shrink-0 gap-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            title="1 gün ertele"
+            className="px-1.5 text-muted-foreground"
+            onClick={() => start(() => snoozeReminder(r.id, 24))}
+          >
             +1g
-          </button>
-          <button type="button" title="Sil" aria-label="Alarmı sil" className="rounded px-1.5 py-0.5 text-xs text-ink-2 hover:bg-cream" onClick={() => start(() => deleteReminder(r.id))}>
-            ✕
-          </button>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            title="Sil"
+            aria-label="Alarmı sil"
+            className="text-muted-foreground"
+            onClick={() => start(() => deleteReminder(r.id))}
+          >
+            <X />
+          </Button>
         </div>
       )}
     </li>
@@ -112,10 +157,10 @@ function AddAlarm({ contactId, links, onDone, canCancel }: { contactId: string; 
   const sel = links.find((l) => l.value === link);
 
   return (
-    <form ref={formRef} {...formProps} className="mb-3 space-y-2 rounded-lg bg-cream-l p-3">
+    <form ref={formRef} {...formProps} className="mb-3 grid gap-2 rounded-lg bg-muted/60 p-3">
       <input type="hidden" name="contactId" value={contactId} />
       {sel && <input type="hidden" name={sel.field} value={sel.value} />}
-      <input type="datetime-local" name="at" required value={at} onChange={(e) => setAt(e.target.value)} className="input" aria-label="Alarm zamanı" />
+      <Input type="datetime-local" name="at" required value={at} onChange={(e) => setAt(e.target.value)} className="bg-background" aria-label="Alarm zamanı" />
       <div className="flex flex-wrap gap-1">
         {[
           ["+1 saat", toLocalInput(new Date(Date.now() + 3600e3))],
@@ -124,37 +169,56 @@ function AddAlarm({ contactId, links, onDone, canCancel }: { contactId: string; 
           ["1 hafta", tomorrowAt(7)],
           ["1 ay", tomorrowAt(30)],
         ].map(([label, v]) => (
-          <button key={label} type="button" className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setAt(v)}>
+          <Button key={label} type="button" variant="outline" size="xs" onClick={() => setAt(v)}>
             {label}
-          </button>
+          </Button>
         ))}
       </div>
-      <input name="title" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ne yapılacak?" maxLength={300} className="input" list="sz-alarm-titles" />
+      <Input
+        name="title"
+        required
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Ne yapılacak?"
+        maxLength={300}
+        className="bg-background"
+        list="sz-alarm-titles"
+        aria-label="Ne yapılacak?"
+      />
       <datalist id="sz-alarm-titles">
         {QUICK_TITLES.map((t) => (
           <option key={t} value={t} />
         ))}
       </datalist>
       {links.length > 0 && (
-        <select value={link} onChange={(e) => setLink(e.target.value)} className="input" aria-label="İlgili talep / poliçe">
-          <option value="">Genel (kişiye bağlı)</option>
-          {links.map((l) => (
-            <option key={l.value} value={l.value}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <Select value={link || NONE} onValueChange={(v) => setLink(v === NONE ? "" : v)}>
+          <SelectTrigger className="w-full bg-background" aria-label="İlgili talep / poliçe">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value={NONE}>Genel (kişiye bağlı)</SelectItem>
+            {links.map((l) => (
+              <SelectItem key={l.value} value={l.value}>
+                {l.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
       <div className="flex items-center justify-end gap-2">
-        {state?.error && <span className="mr-auto text-xs text-accent">{state.error}</span>}
-        {canCancel && (
-          <button type="button" className="btn-ghost py-1.5" onClick={onDone}>
-            Vazgeç
-          </button>
+        {state?.error && (
+          <span role="alert" className="mr-auto text-xs text-brand">
+            {state.error}
+          </span>
         )}
-        <button className="btn-primary py-1.5" disabled={pending}>
+        {canCancel && (
+          <Button type="button" variant="ghost" size="sm" onClick={onDone}>
+            Vazgeç
+          </Button>
+        )}
+        <Button type="submit" size="sm" disabled={pending}>
           Alarm kur
-        </button>
+        </Button>
       </div>
     </form>
   );

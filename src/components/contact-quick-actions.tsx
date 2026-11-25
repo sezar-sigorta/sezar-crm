@@ -2,7 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { whatsappMessage } from "@/app/(app)/actions";
+import { Mail, Phone } from "lucide-react";
 import { CUSTOMER_WHATSAPP_TEMPLATES, WHATSAPP_TEMPLATES } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type WaTarget = { key: string; label: string; requestId?: string; policyId?: string; product?: string };
 
@@ -41,57 +53,57 @@ export function ContactQuickActions({
   }
 
   return (
-    <div className="relative flex flex-wrap gap-2">
-      <a href={`tel:+90${phone}`} className="btn-ghost">
-        <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z" />
-        </svg>
-        Ara
-      </a>
-      <button type="button" className="btn-wa" onClick={() => setOpen((o) => !o)} aria-expanded={open} disabled={pending}>
-        <svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">
-          <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7a11.3 11.3 0 01-4.5-4c-.3-.5-1-1.5-1-2.8s.7-2 .9-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.8-.1 1.4z" />
-        </svg>
-        WhatsApp
-      </button>
-      {email && (
-        <a href={`mailto:${email}`} className="btn-ghost">
-          <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M4 4h16v16H4zM4 6l8 7 8-7" />
-          </svg>
-          E-posta
+    <div className="flex flex-wrap gap-2">
+      <Button asChild variant="outline" size="sm">
+        <a href={`tel:+90${phone}`}>
+          <Phone data-icon="inline-start" />
+          Ara
         </a>
-      )}
-      {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-80 rounded-xl border border-line bg-white p-2 shadow-xl">
+      </Button>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="outline" size="sm" disabled={pending}>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-icon="inline-start" className="text-wa">
+              <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7a11.3 11.3 0 01-4.5-4c-.3-.5-1-1.5-1-2.8s.7-2 .9-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.8-.1 1.4z" />
+            </svg>
+            WhatsApp
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-1.5">
           {targets.length > 1 && (
-            <label className="mb-2 block px-2 pt-1 text-xs text-ink-2">
-              Hangi {kind === "customer" ? "poliçe" : "talep"} için?
-              <select value={current?.key ?? ""} onChange={(e) => setPicked(e.target.value)} className="input mt-1">
+            <>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                Hangi {kind === "customer" ? "poliçe" : "talep"} için?
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={current?.key ?? ""} onValueChange={setPicked}>
                 {targets.map((t) => (
-                  <option key={t.key} value={t.key}>
+                  // Keep the menu open: picking the target is a step before choosing a template.
+                  <DropdownMenuRadioItem key={t.key} value={t.key} onSelect={(e) => e.preventDefault()} className="whitespace-normal">
                     {t.label}
-                  </option>
+                  </DropdownMenuRadioItem>
                 ))}
-              </select>
-            </label>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+            </>
           )}
-          <ul>
-            {templates.map((t) => (
-              <li key={t.id}>
-                <button type="button" onClick={() => send(t.id)} className="w-full rounded-lg px-3 py-2 text-left hover:bg-cream">
-                  <div className="text-sm font-medium">{t.label}</div>
-                  <div className="line-clamp-2 text-xs text-ink-2">{t.text}</div>
-                </button>
-              </li>
-            ))}
-            <li>
-              <button type="button" onClick={() => send("")} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-cream">
-                Boş sohbet aç
-              </button>
-            </li>
-          </ul>
-        </div>
+          {templates.map((t) => (
+            <DropdownMenuItem key={t.id} onSelect={() => send(t.id)} className="flex-col items-start gap-0.5 px-2.5 py-2">
+              <span className="text-sm font-medium">{t.label}</span>
+              <span className="line-clamp-2 text-xs text-muted-foreground">{t.text}</span>
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => send("")} className="px-2.5 py-2">
+            Boş sohbet aç
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {email && (
+        <Button asChild variant="outline" size="icon-sm" title={`E-posta: ${email}`}>
+          <a href={`mailto:${email}`} aria-label="E-posta gönder">
+            <Mail />
+          </a>
+        </Button>
       )}
     </div>
   );

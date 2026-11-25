@@ -2,15 +2,12 @@ import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-navy px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex items-center justify-center gap-3 text-cream">
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <div className="flex items-center gap-2 self-center font-medium">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="" className="size-10 rounded-xl ring-1 ring-cream/20" />
-          <div>
-            <div className="font-display text-xl font-semibold leading-tight">Sezar CRM</div>
-            <div className="text-xs text-navy-l">Sezar Sigorta ekibi için</div>
-          </div>
+          <img src="/icon.svg" alt="" className="size-6 rounded-md" />
+          Sezar CRM
         </div>
         <LoginForm />
       </div>

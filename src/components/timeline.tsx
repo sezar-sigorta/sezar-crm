@@ -4,7 +4,27 @@ import { useEffect, useState } from "react";
 import { logActivity } from "@/app/(app)/actions";
 import { NOTE_STATUSES, NOTE_TOPICS, PRODUCTS, productLabel } from "@/lib/constants";
 import { ago, fmtDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import {
+  AlarmClockIcon,
+  ArrowRightLeftIcon,
+  FileTextIcon,
+  InfoIcon,
+  type LucideIcon,
+  MessageCircleIcon,
+  PhoneIcon,
+  StickyNoteIcon,
+  UserRoundIcon,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useFormAction } from "./use-form-action";
+
+/** Radix Select items can't have an empty value; this stands for "Genel" / "Seçiniz" and posts "". */
+const NONE = "__none";
 
 type Act = {
   id: string;
@@ -16,23 +36,29 @@ type Act = {
   userName: string | null;
 };
 
-const ICON: Record<string, { label: string; tone: string }> = {
-  form: { label: "Form", tone: "bg-cream text-navy" },
-  note: { label: "Not", tone: "bg-amber-100 text-amber-800" },
-  call: { label: "Görüşme", tone: "bg-sky-100 text-sky-800" },
-  whatsapp: { label: "WhatsApp", tone: "bg-emerald-100 text-emerald-800" },
-  stage: { label: "Aşama", tone: "bg-violet-100 text-violet-800" },
-  assign: { label: "Atama", tone: "bg-stone-100 text-stone-700" },
-  followup: { label: "Alarm", tone: "bg-orange-100 text-orange-800" },
-  system: { label: "Sistem", tone: "bg-stone-100 text-stone-700" },
+const ICON: Record<string, { label: string; Icon: LucideIcon }> = {
+  form: { label: "Form", Icon: FileTextIcon },
+  note: { label: "Not", Icon: StickyNoteIcon },
+  call: { label: "Görüşme", Icon: PhoneIcon },
+  whatsapp: { label: "WhatsApp", Icon: MessageCircleIcon },
+  stage: { label: "Aşama", Icon: ArrowRightLeftIcon },
+  assign: { label: "Atama", Icon: UserRoundIcon },
+  followup: { label: "Alarm", Icon: AlarmClockIcon },
+  system: { label: "Sistem", Icon: InfoIcon },
 };
 
+const FILTERS = [
+  ["all", "Tümü"],
+  ["note", "Notlar"],
+  ["call", "Görüşmeler"],
+] as const;
+
+/** Activity tab: one composer box on top, the history underneath. */
 export function Timeline({
   contactId,
   activities,
   ownProducts,
   labels,
-  title = "Notlar ve geçmiş",
 }: {
   contactId: string;
   activities: Act[];
@@ -40,64 +66,60 @@ export function Timeline({
   ownProducts: string[];
   /** id → label for every policy and request of the person (to label older entries). */
   labels: Record<string, string>;
-  title?: string;
 }) {
   const [filter, setFilter] = useState<"all" | "note" | "call">("all");
   const isNote = (a: Act) => a.type === "note" || (a.type === "call" && !!a.meta?.text);
   const shown = activities.filter((a) => filter === "all" || (filter === "note" ? isNote(a) : a.type === "call" || a.type === "whatsapp"));
-  const noteCount = activities.filter(isNote).length;
 
   return (
-    <section className="card">
+    <div className="flex flex-col gap-6">
       <NoteForm contactId={contactId} ownProducts={ownProducts} />
 
-      <div className="flex flex-wrap items-center gap-2 px-4 pt-4">
-        <h2 className="mr-auto text-base font-semibold">{title}</h2>
-        {(
-          [
-            ["all", "Tümü"],
-            ["note", `Notlar (${noteCount})`],
-            ["call", "Görüşmeler"],
-          ] as const
-        ).map(([v, l]) => (
-          <button
-            key={v}
-            type="button"
-            aria-pressed={filter === v}
-            onClick={() => setFilter(v)}
-            className={`rounded-full border px-2.5 py-0.5 text-xs ${filter === v ? "border-navy bg-navy text-cream" : "border-line text-ink-2 hover:text-navy"}`}
-          >
-            {l}
-          </button>
-        ))}
-      </div>
-      <ol className="p-4">
-        {shown.length === 0 && <li className="text-sm text-ink-2">Kayıt yok.</li>}
-        {shown.map((a) => {
-          const ic = ICON[a.type] ?? ICON.system;
-          const tags = tagsOf(a, labels);
-          return (
-            <li key={a.id} className="flex gap-3 pb-4 pl-1 last:pb-0">
-              <span className={`mt-0.5 h-fit shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${ic.tone}`}>{ic.label}</span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm break-words whitespace-pre-wrap">{a.body}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-2">
-                  {tags.map((t) => (
-                    <span key={t} className="rounded border border-line bg-cream-l px-1.5 py-px text-[11px] text-navy">
-                      {t}
+      <section aria-labelledby="hist-h" className="flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <h2 id="hist-h" className="mr-auto text-sm font-medium">
+            Geçmiş
+          </h2>
+          <ToggleGroup type="single" size="sm" variant="outline" spacing={0} value={filter} onValueChange={(v) => v && setFilter(v as typeof filter)} aria-label="Filtre">
+            {FILTERS.map(([v, l]) => (
+              <ToggleGroupItem key={v} value={v} className="h-7 px-2.5 text-xs data-[state=on]:bg-muted">
+                {l}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
+        <ol className="relative">
+          {shown.length === 0 && <li className="py-6 text-center text-sm text-muted-foreground">Kayıt yok.</li>}
+          {shown.map((a, i) => {
+            const { label, Icon } = ICON[a.type] ?? ICON.system;
+            const tags = tagsOf(a, labels);
+            return (
+              <li key={a.id} className="relative flex gap-3 pb-5 last:pb-0">
+                {i < shown.length - 1 && <span className="absolute top-8 bottom-0 left-[13px] w-px bg-border" aria-hidden="true" />}
+                <span className="z-10 grid size-7 shrink-0 place-items-center rounded-full border bg-background text-muted-foreground" title={label}>
+                  <Icon className="size-3.5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1 pt-1">
+                  <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">{a.userName ?? label}</span>
+                    {a.userName && <span>· {label.toLocaleLowerCase("tr")}</span>}
+                    {tags.map((t) => (
+                      <Badge key={t} variant="secondary" className="h-5 px-1.5 font-normal">
+                        {t}
+                      </Badge>
+                    ))}
+                    <span className="ml-auto whitespace-nowrap" title={fmtDateTime(a.createdAt)}>
+                      {ago(a.createdAt)}
                     </span>
-                  ))}
-                  <span title={fmtDateTime(a.createdAt)}>
-                    {ago(a.createdAt)}
-                    {a.userName && ` · ${a.userName}`}
-                  </span>
+                  </div>
+                  {a.body && <p className="mt-1 text-sm break-words whitespace-pre-wrap">{a.body}</p>}
                 </div>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    </div>
   );
 }
 
@@ -116,86 +138,123 @@ function NoteForm({ contactId, ownProducts }: { contactId: string; ownProducts: 
   const [state, formProps, pending] = useFormAction(logActivity);
   const [product, setProduct] = useState("");
   const [topic, setTopic] = useState("");
-  const [status, setStatus] = useState("note");
+  const [mode, setMode] = useState<"note" | "call">("note");
+  const [status, setStatus] = useState("reached");
   const [body, setBody] = useState("");
   useEffect(() => {
     if (state?.ok) {
       setProduct("");
       setTopic("");
-      setStatus("note");
+      setMode("note");
+      setStatus("reached");
       setBody("");
     }
   }, [state]);
   const others = PRODUCTS.filter((p) => p.code !== "genel" && !ownProducts.includes(p.code));
+  const call = mode === "call";
 
   return (
-    <form {...formProps} className="@container space-y-3 border-b border-line p-4">
+    <form
+      {...formProps}
+      className="rounded-xl border bg-card shadow-xs transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30"
+    >
       <input type="hidden" name="contactId" value={contactId} />
-      <div className="grid gap-2 @lg:grid-cols-3">
-        <label className="text-xs text-ink-2">
-          İlgili poliçe
-          <select name="product" value={product} onChange={(e) => setProduct(e.target.value)} className="input mt-1">
-            <option value="">Genel</option>
-            {ownProducts.length > 0 && (
-              <optgroup label="Bu kişide olanlar">
-                {ownProducts.map((p) => (
-                  <option key={p} value={p}>
-                    {productLabel(p)}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            <optgroup label={ownProducts.length ? "Diğer poliçeler" : "Poliçeler"}>
-              {others.map((p) => (
-                <option key={p.code} value={p.code}>
-                  {p.label}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </label>
-        <label className="text-xs text-ink-2">
-          Sebep
-          <select name="topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="input mt-1">
-            <option value="">Seçiniz</option>
-            {NOTE_TOPICS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-ink-2">
-          Durum
-          <select name="status" value={status} onChange={(e) => setStatus(e.target.value)} className="input mt-1">
-            {NOTE_STATUSES.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <input type="hidden" name="product" value={product} />
+      <input type="hidden" name="topic" value={topic} />
+      <input type="hidden" name="status" value={call ? status : "note"} />
 
-      <textarea
+      <Textarea
         name="body"
         rows={2}
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        placeholder={status === "note" ? "Not…" : "Görüşme notu (isteğe bağlı)"}
-        className="input resize-y"
+        placeholder={call ? "Görüşme notu (isteğe bağlı)…" : "Not yaz…"}
+        className="min-h-16 resize-none border-0 bg-transparent px-3.5 pt-3 shadow-none focus-visible:ring-0 dark:bg-transparent"
         aria-label="Not"
       />
 
-      <div className="flex items-center justify-end gap-3">
-        {state?.error && (
-          <span role="alert" className="mr-auto text-sm text-accent">
-            {state.error}
-          </span>
+      <div className="flex flex-wrap items-center gap-2 border-t px-2.5 py-2">
+        <ToggleGroup type="single" size="sm" variant="outline" spacing={0} value={mode} onValueChange={(v) => v && setMode(v as "note" | "call")} aria-label="Kayıt türü">
+          <ToggleGroupItem value="note" className="h-7 px-2.5 text-xs data-[state=on]:bg-muted">
+            <StickyNoteIcon data-icon="inline-start" />
+            Not
+          </ToggleGroupItem>
+          <ToggleGroupItem value="call" className="h-7 px-2.5 text-xs data-[state=on]:bg-muted">
+            <PhoneIcon data-icon="inline-start" />
+            Görüşme
+          </ToggleGroupItem>
+        </ToggleGroup>
+
+        {call && (
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger size="sm" aria-label="Görüşme sonucu" className="h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {NOTE_STATUSES.filter((s) => s.code !== "note").map((s) => (
+                <SelectItem key={s.code} value={s.code}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
-        <button className="btn-primary" disabled={pending}>
-          {pending ? "Kaydediliyor…" : "Kaydet"}
-        </button>
+
+        <Select value={product || NONE} onValueChange={(v) => setProduct(v === NONE ? "" : v)}>
+          <SelectTrigger size="sm" aria-label="İlgili poliçe" className={cn("h-7 text-xs", !product && "text-muted-foreground")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value={NONE}>Poliçe: genel</SelectItem>
+            {ownProducts.length > 0 && (
+              <>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel>Bu kişide olanlar</SelectLabel>
+                  {ownProducts.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {productLabel(p)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </>
+            )}
+            <SelectSeparator />
+            <SelectGroup>
+              <SelectLabel>{ownProducts.length ? "Diğer poliçeler" : "Poliçeler"}</SelectLabel>
+              {others.map((p) => (
+                <SelectItem key={p.code} value={p.code}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <Select value={topic || NONE} onValueChange={(v) => setTopic(v === NONE ? "" : v)}>
+          <SelectTrigger size="sm" aria-label="Sebep" className={cn("h-7 text-xs", !topic && "text-muted-foreground")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value={NONE}>Sebep: yok</SelectItem>
+            {NOTE_TOPICS.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="ml-auto flex items-center gap-2">
+          {state?.error && (
+            <span role="alert" className="text-xs text-destructive">
+              {state.error}
+            </span>
+          )}
+          <Button type="submit" size="sm" disabled={pending}>
+            {pending ? "Kaydediliyor…" : "Kaydet"}
+          </Button>
+        </div>
       </div>
     </form>
   );

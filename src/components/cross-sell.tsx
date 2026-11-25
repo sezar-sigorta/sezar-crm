@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { openRequest } from "@/app/(app)/actions";
+import { Check, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Chip } from "./chips";
 import { CROSS_SELL, CROSS_SELL_CORPORATE, CROSS_SELL_REASONS, productLabel } from "@/lib/constants";
 
 export type Suggestion = { product: string; reason: string; priority?: string };
@@ -27,23 +32,27 @@ export function CrossSell({
 }) {
   const list: Suggestion[] =
     suggestions ??
-    (corporate ? CROSS_SELL_CORPORATE : CROSS_SELL)
-      .filter((p) => !has.includes(p))
-      .map((p) => ({ product: p, reason: CROSS_SELL_REASONS[p] ?? "" }));
+    (corporate ? CROSS_SELL_CORPORATE : CROSS_SELL).filter((p) => !has.includes(p)).map((p) => ({ product: p, reason: CROSS_SELL_REASONS[p] ?? "" }));
   // Keep the list as first shown: after "Teklif talebi aç" the page refreshes and the product
   // counts as requested, but its row must stay to show the confirmation.
   const [items] = useState(list);
   if (items.length === 0) return null;
   return (
-    <section className="card p-5">
-      <h2 className="text-base font-semibold">{title}</h2>
-      <p className="mt-1 text-xs text-ink-2">"Teklif talebi aç" bu ürün için Talepler'de takip edilecek bir kart açar.</p>
-      <ul className="mt-3 divide-y divide-line">
-        {items.map((s) => (
-          <Row key={s.product} contactId={contactId} s={s} />
-        ))}
-      </ul>
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-base font-semibold">
+          <h2>{title}</h2>
+        </CardTitle>
+        <CardDescription className="text-xs">&quot;Teklif talebi aç&quot; bu ürün için Talepler&apos;de takip edilecek bir kart açar.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ul className="-my-2.5 divide-y">
+          {items.map((s) => (
+            <Row key={s.product} contactId={contactId} s={s} />
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -57,20 +66,27 @@ function Row({ contactId, s }: { contactId: string; s: Suggestion }) {
           <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
             {productLabel(s.product)}
             {s.priority && (
-              <span
-                className={`chip ${s.priority === "yüksek" ? "border-orange-200 bg-orange-50 text-accent" : s.priority === "orta" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-line text-ink-2"}`}
+              <Chip
+                tone={
+                  s.priority === "yüksek"
+                    ? "border-orange-200 bg-orange-50 text-brand"
+                    : s.priority === "orta"
+                      ? "border-amber-200 bg-amber-50 text-amber-800"
+                      : "border-line text-ink-2"
+                }
               >
                 {s.priority}
-              </span>
+              </Chip>
             )}
           </div>
-          {s.reason && <p className="text-xs text-ink-2">{s.reason}</p>}
+          {s.reason && <p className="text-xs text-muted-foreground">{s.reason}</p>}
         </div>
         {!result?.ok && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="xs"
             disabled={pending}
-            className="btn-ghost shrink-0 px-2.5 py-1 text-xs"
             onClick={() =>
               start(async () => {
                 const r = await openRequest(contactId, s.product);
@@ -78,19 +94,21 @@ function Row({ contactId, s }: { contactId: string; s: Suggestion }) {
               })
             }
           >
+            <Plus data-icon="inline-start" />
             {pending ? "Açılıyor…" : "Teklif talebi aç"}
-          </button>
+          </Button>
         )}
       </div>
       {result && (
-        <p role="status" className={`mt-1.5 rounded-md px-2.5 py-1.5 text-xs ${result.ok ? "bg-emerald-50 text-emerald-800" : "bg-orange-50 text-accent"}`}>
+        <p role="status" className={cn("mt-1.5 rounded-md px-2.5 py-1.5 text-xs", result.ok ? "bg-emerald-50 text-emerald-800" : "bg-orange-50 text-brand")}>
           {result.ok ? (
             <>
-              ✓ {productLabel(s.product)} talebi açıldı: profilde "Açık talepler" altında ve{" "}
+              <Check className="mr-1 inline size-3.5 align-[-2px]" aria-hidden="true" />
+              {productLabel(s.product)} talebi açıldı: profilde &quot;Açık talepler&quot; altında ve{" "}
               <Link href="/talepler" className="font-medium underline">
                 Talepler
               </Link>{" "}
-              sayfasında "Dönüş bekliyoruz" grubunda.
+              sayfasında &quot;Dönüş bekliyoruz&quot; grubunda.
             </>
           ) : (
             result.text

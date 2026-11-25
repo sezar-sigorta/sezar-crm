@@ -104,3 +104,18 @@ export function initials(name: string) {
     .map((w) => w[0]!.toLocaleUpperCase("tr"))
     .join("");
 }
+
+/**
+ * Short label for a reminder that is close: "Gecikti", "Bugün 14:00", "Yarın 10:00", "Cuma 09:30".
+ * Null when it is more than `withinDays` days away (far reminders stay in the side panel / profile).
+ */
+export function nearAlarmLabel(d: Date | string, now = new Date(), withinDays = 7): string | null {
+  const at = new Date(d);
+  if (at < now) return "Gecikti";
+  const dayDiff = Math.round((Date.parse(todayYmd(at)) - Date.parse(todayYmd(now))) / 864e5);
+  if (dayDiff > withinDays) return null;
+  const time = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(at);
+  if (dayDiff === 0) return `Bugün ${time}`;
+  if (dayDiff === 1) return `Yarın ${time}`;
+  return `${new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, weekday: "long" }).format(at)} ${time}`;
+}

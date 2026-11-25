@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
-import { OPEN_STAGES } from "./constants";
+import { OPEN_STAGES, channelOf } from "./constants";
 import { todayYmd } from "./format";
 
 const { contacts, requests, activities, users, inbox, policies, reminders, documents } = schema;
@@ -38,6 +38,7 @@ const requestWithContact = {
   createdAt: requests.createdAt,
   fullName: contacts.fullName,
   phone: contacts.phone,
+  email: contacts.email,
   preferredCallTime: contacts.preferredCallTime,
   lifecycle: contacts.lifecycle,
   nextAlarmAt: nextAlarm,
@@ -138,7 +139,8 @@ export async function pipeline(f: PipelineFilters = {}) {
     or(inArray(requests.stage, OPEN_STAGES), gte(requests.stageChangedAt, d30)),
   ];
   if (f.product) where.push(eq(requests.product, f.product));
-  if (f.source) where.push(eq(requests.source, f.source));
+  if (f.source === "other") where.push(sql`${requests.source} not in ('meta', 'website')`);
+  else if (f.source) where.push(eq(requests.source, f.source));
   if (f.assignee === "none") where.push(sql`${requests.assignedTo} is null`);
   else if (f.assignee) where.push(eq(requests.assignedTo, f.assignee));
   if (f.form) where.push(sql`${requests.sourceDetail}->>'form' = ${f.form}`);
@@ -351,4 +353,68 @@ export async function formAndCampaignNames() {
   ]);
   const sort = (a: { v: string }[]) => a.map((x) => x.v).sort((x, y) => x.localeCompare(y, "tr"));
   return { forms: sort(forms), campaigns: sort(campaigns) };
+}
+
+/** One request with its person, for the Lead Merkezi side panel. */
+export async function leadDetail(requestId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(requestId)) return null;
+  const db = await getDb();
+  const [row] = await db
+    .select({ request: requests, contact: contacts })
+    .from(requests)
+    .innerJoin(contacts, eq(contacts.id, requests.contactId))
+    .where(eq(requests.id, requestId))
+    .limit(1);
+  if (!row) return null;
+  const others = await db
+    .select({ id: requests.id, product: requests.product, stage: requests.stage, source: requests.source, createdAt: requests.createdAt })
+    .from(requests)
+    .where(and(eq(requests.contactId, row.contact.id), sql`${requests.id} <> ${requestId}`))
+    .orderBy(desc(requests.createdAt))
+    .limit(10);
+  const [notes, alarms, tagRows] = await Promise.all([
+    db
+      .select({ id: activities.id, type: activities.type, body: activities.body, createdAt: activities.createdAt, userName: users.name })
+      .from(activities)
+      .leftJoin(users, eq(users.id, activities.userId))
+      .where(and(eq(activities.contactId, row.contact.id), inArray(activities.type, ["note", "call"])))
+      .orderBy(desc(activities.createdAt))
+      .limit(5),
+    db
+      .select({ id: reminders.id, title: reminders.title, dueAt: reminders.dueAt, kind: reminders.kind })
+      .from(reminders)
+      .where(and(eq(reminders.contactId, row.contact.id), isNull(reminders.doneAt)))
+      .orderBy(asc(reminders.dueAt))
+      .limit(5),
+    // Every tag in use, for suggestions in the tag box.
+    db.select({ tag: sql<string>`distinct unnest(${contacts.tags})` }).from(contacts),
+  ]);
+  return { ...row, others, notes, alarms, allTags: tagRows.map((t) => t.tag).sort((a, b) => a.localeCompare(b, "tr")) };
+}
+
+/** Leads per day (Istanbul time) and channel for the last `days` days, oldest first, gaps filled with 0. */
+export async function leadTrend(days = 90) {
+  const db = await getDb();
+  const now = new Date();
+  const from = new Date(`${todayYmd(new Date(now.getTime() - (days - 1) * 864e5))}T00:00:00+03:00`);
+  const day = sql<string>`to_char((${requests.createdAt} at time zone 'Europe/Istanbul')::date, 'YYYY-MM-DD')`;
+  const rows = await db
+    .select({ day, source: requests.source, n: count() })
+    .from(requests)
+    .where(gte(requests.createdAt, from))
+    .groupBy(day, requests.source);
+  const out = new Map<string, { date: string; meta: number; website: number; manual: number }>();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = todayYmd(new Date(now.getTime() - i * 864e5));
+    out.set(d, { date: d, meta: 0, website: 0, manual: 0 });
+  }
+  for (const r of rows) {
+    const slot = out.get(r.day);
+    if (!slot) continue;
+    const ch = channelOf(r.source);
+    if (ch === "meta") slot.meta += r.n;
+    else if (ch === "website") slot.website += r.n;
+    else slot.manual += r.n;
+  }
+  return [...out.values()];
 }

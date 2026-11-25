@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { createCustomer, createManualLead } from "@/app/(app)/actions";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PRODUCTS, SOURCES } from "@/lib/constants";
 import { todayYmd } from "@/lib/format";
 import { CorporateFields } from "./corporate-fields";
@@ -17,145 +24,135 @@ export function NewContactForm({ mode }: { mode: "lead" | "customer" }) {
   return (
     <form {...formProps} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="kind" value={kind} />
-      <fieldset className="sm:col-span-2">
-        <legend className="label">Tür</legend>
-        <div className="inline-flex rounded-lg border border-line bg-white p-0.5" role="radiogroup">
-          {(["bireysel", "kurumsal"] as const).map((k) => (
-            <button
-              key={k}
-              type="button"
-              role="radio"
-              aria-checked={kind === k}
-              onClick={() => setKind(k)}
-              className={`rounded-md px-4 py-1.5 text-sm ${kind === k ? "bg-navy text-cream" : "text-ink-2 hover:text-navy"}`}
-            >
-              {k === "bireysel" ? "Bireysel" : "Kurumsal"}
-            </button>
-          ))}
-        </div>
+      <fieldset className="grid gap-1.5 sm:col-span-2">
+        <legend className="mb-1.5 text-xs font-medium text-muted-foreground">Tür</legend>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={kind}
+          onValueChange={(v) => v && setKind(v as "bireysel" | "kurumsal")}
+          className="bg-card"
+          aria-label="Tür"
+        >
+          <ToggleGroupItem value="bireysel" className="px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+            Bireysel
+          </ToggleGroupItem>
+          <ToggleGroupItem value="kurumsal" className="px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+            Kurumsal
+          </ToggleGroupItem>
+        </ToggleGroup>
       </fieldset>
 
       {corp && <CorporateFields />}
 
-      <div className={corp ? "" : "sm:col-span-2"}>
-        <label className="label" htmlFor="fullName">
-          {corp ? "Yetkili ad soyad *" : "Ad soyad *"}
-        </label>
-        <input id="fullName" name="fullName" required className="input" autoFocus={!corp} />
-      </div>
+      <Field id="fullName" label={corp ? "Yetkili ad soyad *" : "Ad soyad *"} className={corp ? "" : "sm:col-span-2"}>
+        <Input id="fullName" name="fullName" required autoFocus={!corp} />
+      </Field>
       {corp && (
-        <div>
-          <label className="label" htmlFor="contactTitle">
-            Yetkilinin görevi
-          </label>
-          <input id="contactTitle" name="contactTitle" placeholder="ör. Genel Müdür, Muhasebe" className="input" />
-        </div>
+        <Field id="contactTitle" label="Yetkilinin görevi">
+          <Input id="contactTitle" name="contactTitle" placeholder="ör. Genel Müdür, Muhasebe" />
+        </Field>
       )}
-      <div>
-        <label className="label" htmlFor="phone">
-          {corp ? "Yetkili telefonu *" : "Cep telefonu *"}
-        </label>
-        <input id="phone" name="phone" required inputMode="tel" placeholder="05XX XXX XX XX" className="input" />
-      </div>
-      <div>
-        <label className="label" htmlFor="email">
-          E-posta
-        </label>
-        <input id="email" name="email" type="email" className="input" />
-      </div>
-      <div>
-        <label className="label" htmlFor="city">
-          Şehir
-        </label>
-        <input id="city" name="city" className="input" />
-      </div>
-      <div>
-        <label className="label" htmlFor="source">
-          Nereden geldi?
-        </label>
-        <select id="source" name="source" defaultValue={mode === "customer" ? "referral" : "phone"} className="input">
-          {SOURCES.filter((s) => s.code !== "website" && s.code !== "meta").map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Field id="phone" label={corp ? "Yetkili telefonu *" : "Cep telefonu *"}>
+        <Input id="phone" name="phone" required inputMode="tel" placeholder="05XX XXX XX XX" />
+      </Field>
+      <Field id="email" label="E-posta">
+        <Input id="email" name="email" type="email" />
+      </Field>
+      <Field id="city" label="Şehir">
+        <Input id="city" name="city" />
+      </Field>
+      <Field id="source" label="Nereden geldi?">
+        <Select name="source" defaultValue={mode === "customer" ? "referral" : "phone"}>
+          <SelectTrigger id="source" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SOURCES.filter((s) => s.code !== "website" && s.code !== "meta").map((s) => (
+              <SelectItem key={s.code} value={s.code}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
 
       {mode === "lead" ? (
-        <div>
-          <label className="label" htmlFor="product">
-            İlgilendiği sigorta *
-          </label>
-          <select id="product" name="product" required defaultValue="" className="input">
-            <option value="" disabled>
-              Seçin
-            </option>
-            {PRODUCTS.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Field id="product" label="İlgilendiği sigorta *">
+          <Select name="product" required>
+            <SelectTrigger id="product" className="w-full">
+              <SelectValue placeholder="Seçin" />
+            </SelectTrigger>
+            <SelectContent>
+              {PRODUCTS.map((p) => (
+                <SelectItem key={p.code} value={p.code}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       ) : (
         <>
-          <div>
-            <label className="label" htmlFor="customerSince">
-              Müşteri olma tarihi
-            </label>
-            <input id="customerSince" name="customerSince" type="date" defaultValue={todayYmd()} className="input" />
-          </div>
-          <fieldset className="space-y-3 rounded-lg border border-line p-4 sm:col-span-2">
-            <legend className="px-1 text-sm font-medium">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" name="addPolicy" checked={withPolicy} onChange={(e) => setWithPolicy(e.target.checked)} className="accent-navy" />
+          <Field id="customerSince" label="Müşteri olma tarihi">
+            <Input id="customerSince" name="customerSince" type="date" defaultValue={todayYmd()} />
+          </Field>
+          <fieldset className="space-y-3 rounded-lg border p-4 sm:col-span-2">
+            <legend className="px-1">
+              <Label className="text-sm">
+                <Checkbox name="addPolicy" checked={withPolicy} onCheckedChange={(c) => setWithPolicy(c === true)} />
                 Poliçesini ekle
-              </label>
+              </Label>
             </legend>
             {withPolicy ? (
               <PolicyFields idPrefix="nc" defaultProduct={corp ? "isyeri" : undefined} />
             ) : (
-              <p className="text-xs text-ink-2">Poliçeleri daha sonra profilden ekleyebilirsiniz.</p>
+              <p className="text-xs text-muted-foreground">Poliçeleri daha sonra profilden ekleyebilirsiniz.</p>
             )}
           </fieldset>
         </>
       )}
 
-      <div className="sm:col-span-2">
-        <label className="label" htmlFor="note">
-          Not
-        </label>
-        <textarea
+      <Field id="note" label="Not" className="sm:col-span-2">
+        <Textarea
           id="note"
           name="note"
           rows={3}
-          className="input resize-y"
+          className="resize-y"
           placeholder={mode === "customer" ? "Müşteri hakkında bilinmesi gerekenler…" : "Ne istedi, ne zaman aranmak istiyor…"}
         />
-      </div>
-      <div className="space-y-2 sm:col-span-2">
-        <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" name="kvkk" className="mt-1 accent-navy" />
-          <span>
-            {corp ? "Yetkiliye" : "Kişiye"} KVKK aydınlatma metni iletildi ve iletişime geçilmesini kabul etti. *
-          </span>
-        </label>
-        <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" name="marketing" className="mt-1 accent-navy" />
+      </Field>
+      <div className="space-y-3 sm:col-span-2">
+        <Label className="items-start font-normal">
+          <Checkbox name="kvkk" className="mt-0.5" />
+          <span>{corp ? "Yetkiliye" : "Kişiye"} KVKK aydınlatma metni iletildi ve iletişime geçilmesini kabul etti. *</span>
+        </Label>
+        <Label className="items-start font-normal">
+          <Checkbox name="marketing" className="mt-0.5" />
           <span>Kampanya / ticari ileti almayı da kabul etti.</span>
-        </label>
+        </Label>
       </div>
-      <div className="flex items-center justify-end gap-3 sm:col-span-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 sm:col-span-2">
         {state?.error && (
-          <span role="alert" className="text-sm text-accent">
+          <span role="alert" className="text-sm text-brand">
             {state.error}
           </span>
         )}
-        <button className="btn-primary" disabled={pending}>
+        <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Kaydediliyor…" : mode === "customer" ? "Müşteriyi kaydet" : "Lead'i kaydet"}
-        </button>
+        </Button>
       </div>
     </form>
+  );
+}
+
+function Field({ id, label, className, children }: { id: string; label: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={`grid gap-1.5 ${className ?? ""}`}>
+      <Label htmlFor={id} className="text-xs text-muted-foreground">
+        {label}
+      </Label>
+      {children}
+    </div>
   );
 }

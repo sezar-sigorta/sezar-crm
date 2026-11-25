@@ -1,36 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormAction } from "@/components/use-form-action";
 import { updateContact } from "@/app/(app)/actions";
 import type { Contact } from "@/db/schema";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { formatPhone } from "@/lib/phone";
 import { CorporateFields } from "./corporate-fields";
 
-export function ContactEditForm({ c }: { c: Contact }) {
+const ON = "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90";
+
+export function ContactEditForm({ c, onSaved }: { c: Contact; onSaved?: () => void }) {
   const [state, formProps, pending] = useFormAction(updateContact);
+  useEffect(() => {
+    if (state?.ok) onSaved?.();
+  }, [state, onSaved]);
   const [kind, setKind] = useState(c.kind === "kurumsal" ? "kurumsal" : "bireysel");
   const corp = kind === "kurumsal";
+  const consentId = `mc-${c.id.slice(0, 6)}`;
   return (
-    <form {...formProps} className="space-y-3 text-sm">
+    <form {...formProps} className="grid gap-3 text-sm">
       <input type="hidden" name="id" value={c.id} />
       <input type="hidden" name="kind" value={kind} />
-      <div className="inline-flex rounded-lg border border-line bg-white p-0.5" role="radiogroup" aria-label="Tür">
-        {(["bireysel", "kurumsal"] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            role="radio"
-            aria-checked={kind === k}
-            onClick={() => setKind(k)}
-            className={`rounded-md px-3 py-1 text-xs ${kind === k ? "bg-navy text-cream" : "text-ink-2 hover:text-navy"}`}
-          >
-            {k === "bireysel" ? "Bireysel" : "Kurumsal"}
-          </button>
-        ))}
-      </div>
+      <ToggleGroup type="single" variant="outline" size="sm" spacing={0} value={kind} onValueChange={(v) => v && setKind(v)} aria-label="Tür">
+        <ToggleGroupItem value="bireysel" className={ON}>
+          Bireysel
+        </ToggleGroupItem>
+        <ToggleGroupItem value="kurumsal" className={ON}>
+          Kurumsal
+        </ToggleGroupItem>
+      </ToggleGroup>
       {corp && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           <CorporateFields c={c} idPrefix={`ed-${c.id.slice(0, 6)}`} />
         </div>
       )}
@@ -38,7 +44,7 @@ export function ContactEditForm({ c }: { c: Contact }) {
       {corp && <Field label="Yetkilinin görevi" name="contactTitle" defaultValue={c.contactTitle ?? ""} />}
       <Field label={corp ? "Yetkili telefonu" : "Telefon"} name="phone" defaultValue={formatPhone(c.phone)} required inputMode="tel" />
       <Field label="E-posta" name="email" type="email" defaultValue={c.email ?? ""} />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <Field label="Şehir" name="city" defaultValue={c.city ?? ""} />
         {!corp && <Field label="Doğum tarihi" name="birthDate" type="date" defaultValue={c.birthDate ?? ""} />}
       </div>
@@ -52,29 +58,32 @@ export function ContactEditForm({ c }: { c: Contact }) {
       )}
       {!corp && <Field label="Meslek" name="occupation" defaultValue={c.occupation ?? ""} />}
       <Field label="Arama tercihi" name="preferredCallTime" defaultValue={c.preferredCallTime ?? ""} placeholder="ör. hafta içi akşam" />
-      <div>
-        <label className="label" htmlFor="notes">
-          Notlar (profil)
-        </label>
-        <textarea
+      <div className="grid gap-1.5">
+        <Label htmlFor="notes">Notlar (profil)</Label>
+        <Textarea
           id="notes"
           name="notes"
           rows={3}
           defaultValue={c.notes ?? ""}
-          className="input resize-y"
+          className="resize-y"
           placeholder={corp ? "Şirket, filo, lokasyonlar gibi kalıcı bilgiler" : "Aile, araç, ev gibi kalıcı bilgiler"}
         />
       </div>
-      <label className="flex items-start gap-2 text-xs text-ink-2">
-        <input type="checkbox" name="marketingConsent" defaultChecked={c.marketingConsent} className="mt-0.5 accent-navy" />
+      <Label htmlFor={consentId} className="cursor-pointer items-start text-xs font-normal text-muted-foreground">
+        {/* Posts marketingConsent=on when checked, like the native checkbox did. */}
+        <Checkbox id={consentId} name="marketingConsent" defaultChecked={c.marketingConsent} />
         Ticari ileti (kampanya) izni verdi
-      </label>
+      </Label>
       <div className="flex items-center justify-end gap-3">
-        {state?.error && <span className="text-xs text-accent">{state.error}</span>}
+        {state?.error && (
+          <span role="alert" className="text-xs text-brand">
+            {state.error}
+          </span>
+        )}
         {state?.ok && <span className="text-xs text-emerald-700">Kaydedildi</span>}
-        <button className="btn-primary" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           Kaydet
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -82,11 +91,9 @@ export function ContactEditForm({ c }: { c: Contact }) {
 
 function Field({ label, name, ...rest }: { label: string; name: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div>
-      <label className="label" htmlFor={name}>
-        {label}
-      </label>
-      <input id={name} name={name} className="input" {...rest} />
+    <div className="grid min-w-0 gap-1.5">
+      <Label htmlFor={name}>{label}</Label>
+      <Input id={name} name={name} {...rest} />
     </div>
   );
 }
