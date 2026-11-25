@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/session";
 
-// Everything needs a login, except the login page and the endpoints that receive leads
+// Everything needs a login, except the login page, the public privacy policy and the endpoints that receive leads
 // (those check their own secret / signature).
-const PUBLIC = [/^\/login/, /^\/api\/intake\//, /^\/api\/meta\//, /^\/api\/health/];
+const PUBLIC = [/^\/login/, /^\/gizlilik\/?$/, /^\/api\/intake\//, /^\/api\/meta\//, /^\/api\/health/];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

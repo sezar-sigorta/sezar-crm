@@ -1,0 +1,41 @@
+// Copy of the privacy policy published on sezarsigorta.com/gizlilik-politikasi/ (source of truth: the site repo).
+// Served at /gizlilik as a public page until the website leaves "Coming Soon" mode, so Meta can reach it.
+// Lines: "## x" heading, "- x" list item, anything else a paragraph.
+export const PRIVACY_TITLE = "Gizlilik politikası";
+export const PRIVACY_LINES: string[] = [
+  "Son güncelleme: 25 Kasım 2026",
+  "Bu gizlilik politikası, Sezar Sigorta markasıyla hizmet veren Ulvi Dağdeviren Sigorta Aracılık Hizmetleri Limited Şirketi’nin (“Sezar Sigorta”, “biz”) sezarsigorta.com internet sitesinde, Facebook ve Instagram reklam formlarında ve sizinle iletişimimizde topladığı bilgileri nasıl kullandığını, kimlerle paylaştığını ve nasıl koruduğunu açıklar. Kişisel verilerinizin işlenmesine ilişkin yasal bilgilendirme KVKK aydınlatma metnimizde (sezarsigorta.com/kvkk) yer alır; bu politika onu tamamlar.",
+  "## Topladığımız bilgiler",
+  "- Formlarda verdiğiniz bilgiler: ad soyad, telefon, e-posta, doğum tarihi, il ve adres, sigortalanacak araç, konut veya işyerine ilişkin bilgiler ve formdaki cevaplarınız.",
+  "- Facebook ve Instagram reklam formları: Bir reklam formumuzu doldurduğunuzda Meta, formda paylaştığınız bilgileri (genellikle ad soyad, telefon, e-posta ve sorulara verdiğiniz cevaplar) ve formun hangi reklam ve kampanya üzerinden doldurulduğunu bize iletir. Formdaki bazı alanları Meta profil bilgilerinizle önceden doldurabilir; göndermeden önce bunları değiştirebilirsiniz.",
+  "- Telefon, WhatsApp, e-posta ve yüz yüze görüşmelerde paylaştığınız bilgiler ve görüşme notlarımız.",
+  "- Siteyi kullanırken oluşan teknik bilgiler: IP adresi, tarayıcı ve cihaz türü, ziyaret edilen sayfalar. Ayrıntılar Çerez politikamızda (sezarsigorta.com/cerez-politikasi).",
+  "## Bilgileri nasıl kullanıyoruz?",
+  "- Talebinize dönüş yapmak ve size teklif hazırlamak,",
+  "- Poliçenizi düzenletmek, yenileme tarihini takip etmek ve hasar sürecinde yardımcı olmak,",
+  "- Yasal yükümlülüklerimizi yerine getirmek,",
+  "- Sitemizi ve reklamlarımızı iyileştirmek; hangi formun ve kampanyanın talep getirdiğini ölçmek,",
+  "- Onay vermeniz hâlinde kampanya ve hatırlatma mesajları göndermek.",
+  "Bilgilerinizi satmıyor, kiralamıyor ve başka şirketlerin kendi pazarlamalarında kullanmasına izin vermiyoruz.",
+  "## Müşteri ilişkileri sistemimiz",
+  "Formlardan gelen talepler, yalnızca Sezar Sigorta çalışanlarının erişebildiği, şifre korumalı bir müşteri ilişkileri sisteminde (CRM) saklanır. Sistem, size daha uygun ürünler önerebilmemiz için yapay zekâ destekli profil analizi kullanabilir. Bu analizde adınız, telefonunuz ve e-posta adresiniz gibi kimliğinizi doğrudan belirleyen bilgiler yapay zekâ hizmetine gönderilmez. Analiz sonuçları çalışanlarımız için yalnızca öneridir; hakkınızda otomatik olarak bir karar verilmez.",
+  "## Bilgileri kimlerle paylaşıyoruz?",
+  "- Teklif ve poliçe için sigorta şirketleriyle,",
+  "- Kanunen yetkili kamu kurum ve kuruluşlarıyla,",
+  "- Hizmet aldığımız teknoloji sağlayıcılarıyla: WordPress.com / Automattic (site barındırma), Vercel ve Supabase (müşteri ilişkileri sistemimizin sunucusu ve Frankfurt’taki veritabanı), Meta Platforms (Facebook ve Instagram reklam formları), Anthropic (kimlik bilgisi içermeyen profil analizi), Google (sitedeki yazı tipleri).",
+  "Bu sağlayıcılar bilgileri yalnızca bize hizmet vermek için ve aramızdaki sözleşmeler çerçevesinde işler. Yurt dışına aktarıma ilişkin ayrıntılar KVKK aydınlatma metnimizde yer alır.",
+  "## Güvenlik",
+  "Bilgilerinizi korumak için sitede ve sistemlerimizde şifreli bağlantı (HTTPS), yalnızca yetkili çalışanların erişebildiği şifre korumalı sistemler, şifreli olarak saklanan dosyalar ve erişim kontrolleri kullanıyoruz. İnternet üzerinden yapılan hiçbir aktarım tamamen risksiz değildir; bir veri ihlali olması hâlinde mevzuatın öngördüğü bildirimleri yaparız.",
+  "## Ne kadar saklıyoruz?",
+  "Teklif aşamasında kalan başvuruları son görüşmemizden itibaren 2 yıl, müşteri ve poliçe kayıtlarını ise mevzuatın öngördüğü süre boyunca saklarız. Ayrıntılar KVKK aydınlatma metnimizde yer alır.",
+  "## Haklarınız ve bilgilerinizin silinmesi",
+  "Bilgilerinize erişmek, düzeltilmesini veya silinmesini istemek için bize +90 312 418 31 71 numaralı telefondan, [E-POSTA ADRESİ] adresinden veya ofisimize yazılı olarak ulaşabilirsiniz. Facebook veya Instagram reklam formu aracılığıyla ilettiğiniz bilgilerin silinmesini de aynı yollarla isteyebilirsiniz. Yasal olarak saklamak zorunda olmadığımız bilgilerinizi en geç 30 gün içinde sileriz. Tüm haklarınız KVKK aydınlatma metnimizde listelenmiştir.",
+  "## Ticari mesajlar",
+  "Kampanya ve hatırlatma mesajlarını yalnızca onay vermeniz hâlinde göndeririz. Onayınızı dilediğiniz zaman ücretsiz olarak geri alabilirsiniz. Ayrıntılar: Ticari elektronik ileti onay metni (sezarsigorta.com/ticari-ileti-onayi).",
+  "## Çocuklar",
+  "Hizmetlerimiz 18 yaşından büyükler içindir. 18 yaşından küçüklere ait bilgileri yalnızca yasal temsilcileri tarafından, örneğin bir aile sağlık poliçesi için verildiğinde işleriz.",
+  "## Değişiklikler",
+  "Bu politikayı zaman zaman güncelleyebiliriz. Güncel metin her zaman bu sayfadadır; önemli değişikliklerde sayfanın başındaki tarihi güncelleriz.",
+  "## İletişim",
+  "Ulvi Dağdeviren Sigorta Aracılık Hizmetleri Limited Şirketi, Şehit Adem Yavuz Sokak No:16/14, Kızılay / Ankara 06420 · +90 312 418 31 71 · [E-POSTA ADRESİ]"
+];
