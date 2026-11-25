@@ -154,6 +154,22 @@ export function formLabel(form: string | null | undefined) {
   return form ?? null;
 }
 
+/** Meta's lead "platform" codes (stored raw by older imports) → readable names. */
+const META_PLATFORMS: Record<string, string> = {
+  fb: "Facebook",
+  ig: "Instagram",
+  an: "Audience Network",
+  msg: "Messenger",
+  messenger: "Messenger",
+  wa: "WhatsApp",
+  th: "Threads",
+};
+
+export function platformLabel(p: string | null | undefined) {
+  if (!p) return null;
+  return META_PLATFORMS[p.toLowerCase()] ?? p;
+}
+
 export function sourceLabel(code: string) {
   return SOURCES.find((s) => s.code === code)?.label ?? code;
 }

@@ -4,7 +4,7 @@ import { BellIcon, MegaphoneIcon, MessageCircleIcon, PhoneIcon } from "lucide-re
 import Link from "next/link";
 import { useOptimistic, useState, useTransition } from "react";
 import { moveStage, setCallStatus } from "@/app/(app)/actions";
-import { CALL_STATUSES, FIRST_RESPONSE_SLA_MIN, PIPELINE_OPTIONS, STAGES, formLabel, pipelineValue, productLabel, sourceLabel } from "@/lib/constants";
+import { CALL_STATUSES, FIRST_RESPONSE_SLA_MIN, PIPELINE_OPTIONS, STAGES, formLabel, pipelineValue, productLabel, platformLabel, sourceLabel } from "@/lib/constants";
 import { ago, fmtDateTime, initials, minutesSince, nearAlarmLabel } from "@/lib/format";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import type { RequestRow } from "@/lib/queries";
@@ -199,7 +199,7 @@ function LeadCard({
   const ad = r.source === "meta" ? (d.ad ?? d.adset ?? d.campaign) : null;
   const adPath = [d.campaign, d.adset, d.ad].filter(Boolean).join(" › ");
   const owner = team.find((u) => u.id === r.assignedTo);
-  const source = r.source === "meta" && r.sourceDetail?.platform ? r.sourceDetail.platform : sourceLabel(r.source);
+  const source = r.source === "meta" && r.sourceDetail?.platform ? platformLabel(r.sourceDetail.platform) : sourceLabel(r.source);
   const origin = [formLabel(r.sourceDetail?.form), r.sourceDetail?.campaign].filter(Boolean).join(" · ");
 
   return (
