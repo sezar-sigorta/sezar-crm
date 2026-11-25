@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { addReminder, assignRequest, logActivity, moveStage, setCallStatus, setContactTags, setReminderDone, setRequestProduct, updateQuote } from "@/app/(app)/actions";
 import type { Contact, Request } from "@/db/schema";
-import { PIPELINE_OPTIONS, PRODUCTS, STAGES, callStatus, formLabel, pipelineValue, productLabel, sourceLabel } from "@/lib/constants";
+import { PIPELINE_OPTIONS, PRODUCTS, STAGES, callStatus, formLabel, pipelineValue, productLabel, platformLabel, sourceLabel } from "@/lib/constants";
 import { fmtDate, fmtDateTime, toLocalInput } from "@/lib/format";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +54,7 @@ export function LeadDrawer({ detail, team, closeHref }: { detail: Detail; team: 
   };
 
   const sourceRows: [string, string | undefined][] = [
-    ["Kanal", r.source === "meta" ? `Meta reklamı${d.platform ? ` · ${d.platform}` : ""}` : sourceLabel(r.source)],
+    ["Kanal", r.source === "meta" ? `Meta reklamı${d.platform ? ` · ${platformLabel(d.platform)}` : ""}` : sourceLabel(r.source)],
     ["Kampanya", d.campaign],
     ["Reklam seti", d.adset],
     ["Reklam", d.ad],

@@ -1,4 +1,4 @@
-import { guessProduct } from "./constants";
+import { guessProduct, platformLabel } from "./constants";
 import type { IncomingLead } from "./ingest";
 
 // Meta (Facebook / Instagram) Lead Ads.
@@ -16,7 +16,7 @@ export type MetaLead = {
   campaign_id?: string;
   campaign_name?: string;
   form_id?: string;
-  platform?: string; // fb | ig
+  platform?: string; // fb | ig | an (Audience Network) | msg …
   is_organic?: boolean;
 };
 
@@ -135,7 +135,7 @@ export function metaLeadToIncoming(lead: MetaLead, formName = ""): IncomingLead 
   const product = guessProduct(productAnswer, formName, lead.campaign_name, lead.adset_name, lead.ad_name);
   const sourceDetail: Record<string, string> = {};
   const put = (k: string, v?: string) => v && (sourceDetail[k] = v);
-  put("platform", lead.platform === "ig" ? "Instagram" : lead.platform === "fb" ? "Facebook" : lead.platform);
+  put("platform", platformLabel(lead.platform) ?? undefined);
   put("campaign", lead.campaign_name);
   put("adset", lead.adset_name);
   put("ad", lead.ad_name);

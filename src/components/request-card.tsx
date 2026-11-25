@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Request } from "@/db/schema";
-import { PIPELINE_OPTIONS, PRODUCTS, STAGES, pipelineValue, sourceLabel } from "@/lib/constants";
+import { PIPELINE_OPTIONS, PRODUCTS, STAGES, pipelineValue, platformLabel, sourceLabel } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { LostDialog } from "./lost-dialog";
@@ -35,7 +35,7 @@ export function RequestCard({ r, team, defaultOpen = false }: { r: Request; team
   const said = new Set(answers.map(([, v]) => String(v)));
   const detail = Object.entries(r.sourceDetail ?? {})
     .filter(([k, v]) => DETAIL_LABELS[k] && !said.has(String(v)))
-    .map(([k, v]) => [DETAIL_LABELS[k], v] as [string, string]);
+    .map(([k, v]) => [DETAIL_LABELS[k], k === "platform" ? (platformLabel(v) ?? v) : v] as [string, string]);
   const [open, setOpen] = useState(defaultOpen);
 
   function changeStage(value: string, reason?: string) {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { callStatus, productLabel, sourceLabel, stage } from "@/lib/constants";
+import { callStatus, productLabel, platformLabel, sourceLabel, stage } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ export function ProductChip({ code }: { code: string }) {
 const SOURCE_DOT: Record<string, string> = { meta: "bg-[#6d4fc2]", website: "bg-navy", whatsapp: "bg-wa", phone: "bg-sky-500" };
 
 export function SourceChip({ code, detail }: { code: string; detail?: Record<string, string> }) {
-  const label = code === "meta" && detail?.platform ? detail.platform : sourceLabel(code);
+  const label = code === "meta" && detail?.platform ? platformLabel(detail.platform) : sourceLabel(code);
   return (
     <Badge variant="outline" className="text-muted-foreground">
       <span className={cn("size-1.5 rounded-full", SOURCE_DOT[code] ?? "bg-muted-foreground/60")} aria-hidden />
