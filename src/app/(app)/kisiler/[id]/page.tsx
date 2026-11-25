@@ -144,7 +144,7 @@ function LeadProfile({ d }: { d: Detail }) {
   return (
     <>
       <Breadcrumb customer={false} name={c.fullName} />
-      <Card className="mb-6">
+      <Card>
         <CardContent>
           <div className="flex flex-wrap items-start gap-4">
             <div className="min-w-0 flex-1 basis-64">
@@ -251,7 +251,7 @@ function CustomerProfile({ d }: { d: Detail }) {
   return (
     <>
       <Breadcrumb customer name={c.fullName} />
-      <Card className="mb-6">
+      <Card>
         <CardContent>
           <div className="flex flex-wrap items-start gap-4">
             <div className="min-w-0 flex-1 basis-64">

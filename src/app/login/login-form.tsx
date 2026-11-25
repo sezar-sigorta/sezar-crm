@@ -11,21 +11,21 @@ import { login } from "./actions";
 export function LoginForm() {
   const [state, formProps, pending] = useFormAction(login);
   return (
-    <Card className="shadow-xl shadow-black/20">
-      <CardHeader>
-        <CardTitle className="font-display text-lg font-semibold">Giriş yap</CardTitle>
-        <CardDescription>Ekip hesabınızla devam edin.</CardDescription>
+    <Card>
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl">Tekrar hoş geldin</CardTitle>
+        <CardDescription>Sezar Sigorta ekip hesabınla giriş yap</CardDescription>
       </CardHeader>
       <CardContent>
-        <form {...formProps} className="grid gap-4">
-          <div className="grid gap-1.5">
-            <Label htmlFor="email" className="text-xs text-muted-foreground">
+        <form {...formProps} className="grid gap-6">
+          <div className="grid gap-3">
+            <Label htmlFor="email">
               E-posta
             </Label>
             <Input id="email" name="email" type="email" autoComplete="username" required />
           </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="password" className="text-xs text-muted-foreground">
+          <div className="grid gap-3">
+            <Label htmlFor="password">
               Şifre
             </Label>
             <Input id="password" name="password" type="password" autoComplete="current-password" required />
@@ -35,7 +35,7 @@ export function LoginForm() {
               <AlertDescription>{state.error}</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" size="lg" className="w-full" disabled={pending}>
+          <Button type="submit" className="w-full" disabled={pending}>
             {pending ? "Giriş yapılıyor…" : "Giriş yap"}
           </Button>
         </form>

@@ -19,23 +19,28 @@ export function StageChip({ code, status }: { code: string; status?: string | nu
 }
 
 export function ProductChip({ code }: { code: string }) {
-  return <Chip tone="border-navy-l bg-[#eef1f8] text-navy">{productLabel(code)}</Chip>;
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      {productLabel(code)}
+    </Badge>
+  );
 }
+
+const SOURCE_DOT: Record<string, string> = { meta: "bg-[#6d4fc2]", website: "bg-navy", whatsapp: "bg-wa", phone: "bg-sky-500" };
 
 export function SourceChip({ code, detail }: { code: string; detail?: Record<string, string> }) {
   const label = code === "meta" && detail?.platform ? detail.platform : sourceLabel(code);
-  const tone =
-    code === "meta"
-      ? "border-[#d9c9f5] bg-[#f4effd] text-[#5b3a9b]"
-      : code === "website"
-        ? "border-cream-d bg-cream text-navy"
-        : "border-line bg-white text-ink-2";
-  return <Chip tone={tone}>{label}</Chip>;
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      <span className={cn("size-1.5 rounded-full", SOURCE_DOT[code] ?? "bg-muted-foreground/60")} aria-hidden />
+      {label}
+    </Badge>
+  );
 }
 
 export function KindChip({ kind }: { kind: string }) {
   if (kind !== "kurumsal") return null;
-  return <Badge className="bg-navy text-cream">Kurumsal</Badge>;
+  return <Badge variant="secondary">Kurumsal</Badge>;
 }
 
 /** Name cell for lists: company with contact person underneath, or the person's name. */
@@ -69,9 +74,9 @@ export function LifecycleChip({ value }: { value: string }) {
 
 export function PageHeader({ title, sub, children }: { title: string; sub?: string; children?: React.ReactNode }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end gap-3">
+    <header className="flex flex-wrap items-end gap-3">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
         {sub && <p className="mt-1 text-sm text-muted-foreground">{sub}</p>}
       </div>
       {children && <div className="ml-auto flex flex-wrap items-center gap-2">{children}</div>}

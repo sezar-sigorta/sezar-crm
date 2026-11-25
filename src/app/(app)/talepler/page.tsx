@@ -82,7 +82,7 @@ export default async function Talepler({ searchParams }: { searchParams: SP }) {
         </Button>
       </PageHeader>
 
-      <Tabs value={channel || "all"} className="mb-4">
+      <Tabs value={channel || "all"}>
         <nav aria-label="Kaynak" className="-mx-4 overflow-x-auto border-b border-border px-4 md:mx-0 md:px-0">
           <TabsList variant="line" className="h-auto! gap-1 p-0">
             {LEAD_CHANNELS.map((c) => {
@@ -103,14 +103,14 @@ export default async function Talepler({ searchParams }: { searchParams: SP }) {
         </nav>
       </Tabs>
 
-      <dl className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Yanıt bekleyen" value={waiting.length} hint={late ? `${late} tanesi ${FIRST_RESPONSE_SLA_MIN} dk'yı geçti` : "Hepsi süresinde"} warn={late > 0} />
         <Stat label="Atanmamış açık lead" value={unassigned} />
         <Stat label="Kazanılan (30 gün)" value={won} />
         <Stat label="Dönüşüm oranı" value={closed ? `%${Math.round((won / closed) * 100)}` : "—"} hint="Kapanan talepler içinde" />
       </dl>
 
-      <form className="mb-4 flex flex-wrap items-end gap-2" role="search">
+      <form className="flex flex-wrap items-end gap-2" role="search">
         {channel && <input type="hidden" name="kaynak" value={channel} />}
         {view === "tablo" && <input type="hidden" name="gorunum" value="tablo" />}
         <div className="relative w-full sm:w-64">

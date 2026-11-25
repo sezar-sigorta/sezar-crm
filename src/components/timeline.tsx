@@ -27,7 +27,7 @@ type Act = {
 };
 
 const ICON: Record<string, { label: string; tone: string }> = {
-  form: { label: "Form", tone: "bg-cream text-navy" },
+  form: { label: "Form", tone: "bg-secondary text-secondary-foreground" },
   note: { label: "Not", tone: "bg-amber-100 text-amber-800" },
   call: { label: "Görüşme", tone: "bg-sky-100 text-sky-800" },
   whatsapp: { label: "WhatsApp", tone: "bg-emerald-100 text-emerald-800" },
@@ -98,7 +98,7 @@ export function Timeline({
                   <p className="text-sm break-words whitespace-pre-wrap">{a.body}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     {tags.map((t) => (
-                      <Badge key={t} variant="outline" className="h-auto rounded px-1.5 py-px text-[11px] font-normal text-navy bg-cream-l">
+                      <Badge key={t} variant="outline" className="h-auto rounded px-1.5 py-px text-[11px] font-normal text-muted-foreground">
                         {t}
                       </Badge>
                     ))}

@@ -130,7 +130,7 @@ export function Kanban({ rows, team }: { rows: RequestRow[]; team: Team }) {
                             {...dropProps(key, (id) => move(id, "followup", undefined, cs.code), true)}
                             className={cn("rounded-lg transition-colors", over === key && "bg-navy-l/30 ring-2 ring-navy-m/40")}
                           >
-                            <div className="sticky top-0 z-10 flex items-center gap-1.5 bg-[#f9f5ee] px-1.5 py-1 text-xs font-medium text-muted-foreground">
+                            <div className="sticky top-0 z-10 flex items-center gap-1.5 bg-muted px-1.5 py-1 text-xs font-medium text-muted-foreground">
                               <span className={cn("size-1.5 rounded-full", SUB_DOT[cs.code])} aria-hidden="true" />
                               {cs.label}
                               <span className="tabular-nums">· {sub.length}</span>
@@ -247,7 +247,7 @@ function LeadCard({
             )}
           </div>
           {owner ? (
-            <span title={`Atanan: ${owner.name}`} className="grid size-6 shrink-0 place-items-center rounded-full bg-navy text-[9px] font-semibold text-cream">
+            <span title={`Atanan: ${owner.name}`} className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
               {initials(owner.name)}
             </span>
           ) : (

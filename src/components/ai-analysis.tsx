@@ -52,9 +52,9 @@ export function AiAnalysis({
   return (
     <>
       <Card role="region" className="gap-0 pt-0" aria-labelledby="ai-h">
-        <CardHeader className="border-b bg-gradient-to-r from-[#f4effd] to-card pt-4">
+        <CardHeader className="border-b [.border-b]:pb-4">
           <CardTitle id="ai-h" className="flex items-center gap-1.5 font-display text-base font-semibold">
-            <Sparkles className="size-4 text-[#5b3a9b]" aria-hidden="true" />
+            <Sparkles className="size-4 text-muted-foreground" aria-hidden="true" />
             AI analizi
           </CardTitle>
           {analyzedAt && <CardDescription className="text-xs">{ago(analyzedAt)}</CardDescription>}
@@ -92,7 +92,7 @@ export function AiAnalysis({
               {analysis.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {analysis.tags.map((t) => (
-                    <Chip key={t} tone="border-[#d9c9f5] bg-[#f4effd] text-[#5b3a9b]">
+                    <Chip key={t} tone="text-muted-foreground">
                       {t}
                     </Chip>
                   ))}
@@ -113,7 +113,7 @@ export function AiAnalysis({
               <div className="mt-4 rounded-lg border p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-sans text-xs font-medium text-muted-foreground">Sıradaki adım</h3>
-                  <Chip tone="border-navy-l bg-[#eef1f8] text-navy">{analysis.next_action.when}</Chip>
+                  <Chip tone="text-muted-foreground">{analysis.next_action.when}</Chip>
                 </div>
                 <p className="mt-1 font-medium">{analysis.next_action.title}</p>
                 <p className="text-xs text-muted-foreground">{analysis.next_action.detail}</p>

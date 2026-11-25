@@ -30,7 +30,7 @@ export function FilterSelect({
     <>
       <input type="hidden" name={name} value={v === ALL ? "" : v} />
       <Select value={v} onValueChange={setV}>
-        <SelectTrigger aria-label={label} className={cn("w-auto min-w-40 bg-card", className)}>
+        <SelectTrigger aria-label={label} className={cn("w-auto min-w-36", className)}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

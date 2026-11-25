@@ -27,7 +27,7 @@ export default async function Entegrasyonlar() {
   return (
     <>
       <PageHeader title="Entegrasyonlar" sub="Lead'lerin CRM'e nereden ve nasıl geldiği." />
-      <div className="mb-6 grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <Head name={checks[0].name} ok={checks[0].ok} need={checks[0].need} />

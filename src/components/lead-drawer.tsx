@@ -312,7 +312,7 @@ function Tags({ contactId, initial, suggestions }: { contactId: string; initial:
         <ul className="mt-2 flex flex-wrap gap-1.5">
           {tags.map((t) => (
             <li key={t}>
-              <Badge variant="outline" className="h-6 gap-0.5 border-navy-l bg-[#eef1f8] pr-0.5 text-navy">
+              <Badge variant="outline" className="h-6 gap-0.5 pr-0.5">
                 {t}
                 <button
                   type="button"

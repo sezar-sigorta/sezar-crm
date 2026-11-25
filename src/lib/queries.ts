@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
-import { OPEN_STAGES } from "./constants";
+import { OPEN_STAGES, channelOf } from "./constants";
 import { todayYmd } from "./format";
 
 const { contacts, requests, activities, users, inbox, policies, reminders, documents } = schema;
@@ -390,4 +390,31 @@ export async function leadDetail(requestId: string) {
     db.select({ tag: sql<string>`distinct unnest(${contacts.tags})` }).from(contacts),
   ]);
   return { ...row, others, notes, alarms, allTags: tagRows.map((t) => t.tag).sort((a, b) => a.localeCompare(b, "tr")) };
+}
+
+/** Leads per day (Istanbul time) and channel for the last `days` days, oldest first, gaps filled with 0. */
+export async function leadTrend(days = 90) {
+  const db = await getDb();
+  const now = new Date();
+  const from = new Date(`${todayYmd(new Date(now.getTime() - (days - 1) * 864e5))}T00:00:00+03:00`);
+  const day = sql<string>`to_char((${requests.createdAt} at time zone 'Europe/Istanbul')::date, 'YYYY-MM-DD')`;
+  const rows = await db
+    .select({ day, source: requests.source, n: count() })
+    .from(requests)
+    .where(gte(requests.createdAt, from))
+    .groupBy(day, requests.source);
+  const out = new Map<string, { date: string; meta: number; website: number; manual: number }>();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = todayYmd(new Date(now.getTime() - i * 864e5));
+    out.set(d, { date: d, meta: 0, website: 0, manual: 0 });
+  }
+  for (const r of rows) {
+    const slot = out.get(r.day);
+    if (!slot) continue;
+    const ch = channelOf(r.source);
+    if (ch === "meta") slot.meta += r.n;
+    else if (ch === "website") slot.website += r.n;
+    else slot.manual += r.n;
+  }
+  return [...out.values()];
 }
