@@ -1,4 +1,5 @@
 import { daysUntil } from "@/lib/format";
+import { Chip } from "./chips";
 
 /** "12 gün kaldı" badge: red ≤ 7 days or past, amber ≤ 30, neutral otherwise. */
 export function RenewalBadge({ ymd }: { ymd: string | null }) {
@@ -13,5 +14,5 @@ export function RenewalBadge({ ymd }: { ymd: string | null }) {
           ? "border-amber-200 bg-amber-50 text-amber-800"
           : "border-line bg-white text-ink-2";
   const text = d < 0 ? `${-d} gün geçti` : d === 0 ? "bugün" : `${d} gün kaldı`;
-  return <span className={`chip ${tone}`}>{text}</span>;
+  return <Chip tone={tone}>{text}</Chip>;
 }
