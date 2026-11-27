@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
 import { ingestLead } from "@/lib/ingest";
+import { recordOnlinePolicy } from "@/lib/online-policy";
 import { safeEqual } from "@/lib/secrets";
 import { websitePayloadToLeads } from "@/lib/website";
 
@@ -27,6 +28,16 @@ export async function POST(req: Request) {
   const [row] = await db.insert(schema.inbox).values({ channel: "website", payload }).returning({ id: schema.inbox.id });
 
   try {
+    // A policy bought online (AXA pages): closes the request as won and records the policy.
+    if (payload.type === "police") {
+      const r = await recordOnlinePolicy(payload);
+      await db
+        .update(schema.inbox)
+        .set(r.ok ? { status: "processed", requestId: r.requestId } : { status: "failed", error: r.error })
+        .where(eq(schema.inbox.id, row.id));
+      return NextResponse.json(r, { status: r.ok ? 200 : 422 });
+    }
+
     // The product form can ask for a package: one request per product, same person.
     const results = [];
     for (const lead of websitePayloadToLeads(payload)) results.push(await ingestLead(lead));
