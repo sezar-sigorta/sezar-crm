@@ -15,7 +15,6 @@ import {
   LOST_REASONS,
   OPEN_STAGES,
   PRODUCTS,
-  RENEWAL_ALARM_DAYS,
   SOURCES,
   STAGES,
   WHATSAPP_TEMPLATES,
@@ -26,6 +25,7 @@ import { addYearsYmd, fmtYmd, fromLocalInput } from "@/lib/format";
 import { ingestLead } from "@/lib/ingest";
 import { fetchMetaLead, listRecentMetaLeads, metaLeadToIncoming } from "@/lib/meta";
 import { normalizePhone } from "@/lib/phone";
+import { insertPolicy, makeCustomer, syncRenewalAlarms } from "@/lib/policies";
 import { websitePayloadToLeads } from "@/lib/website";
 
 const { contacts, requests, activities, inbox, policies, reminders } = schema;
@@ -37,8 +37,6 @@ function refresh(contactId?: string) {
   revalidatePath("/", "layout");
   if (contactId) revalidatePath(`/kisiler/${contactId}`);
 }
-
-type Tx = Parameters<Parameters<Awaited<ReturnType<typeof getDb>>["transaction"]>[0]>[0];
 
 async function loadRequest(id: string) {
   const db = await getDb();
@@ -121,17 +119,6 @@ export async function setCallStatus(requestId: string, status: string) {
   refresh(r.contactId);
 }
 
-/** Sets lifecycle=customer (once) and logs it. */
-async function makeCustomer(tx: Tx, contactId: string, userId: string, now: Date, why: string) {
-  const [c] = await tx.select().from(contacts).where(eq(contacts.id, contactId));
-  if (!c || c.lifecycle === "customer") return;
-  await tx
-    .update(contacts)
-    .set({ lifecycle: "customer", customerSince: c.customerSince ?? now, updatedAt: now })
-    .where(eq(contacts.id, contactId));
-  await tx.insert(activities).values({ contactId, userId, type: "system", body: `Müşteriye dönüştürüldü — ${why}` });
-}
-
 /* ------------------------------------------------------------- lead → customer */
 
 const convertSchema = z.object({
@@ -208,51 +195,6 @@ function parseMoney(v?: string | null) {
   if (!v) return null;
   const n = v.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
   return n && !Number.isNaN(Number(n)) ? n : null;
-}
-
-type PolicyInput = {
-  contactId: string;
-  requestId?: string | null;
-  product: string;
-  insurer: string | null;
-  policyNo: string | null;
-  subject?: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  premium: string | null;
-  notes?: string | null;
-};
-
-/** Renewal alarms at 10:00 Istanbul time, N days before the renewal date (only future ones). */
-async function syncRenewalAlarms(tx: Tx, userId: string | null, policyId: string, contactId: string, product: string, insurer: string | null, endDate: string | null) {
-  await tx.delete(reminders).where(and(eq(reminders.policyId, policyId), eq(reminders.kind, "renewal"), isNull(reminders.doneAt)));
-  if (!endDate) return;
-  const end = new Date(`${endDate}T10:00:00+03:00`);
-  for (const days of RENEWAL_ALARM_DAYS) {
-    const due = new Date(end.getTime() - days * 864e5);
-    if (due <= new Date()) continue;
-    await tx.insert(reminders).values({
-      contactId,
-      policyId,
-      dueAt: due,
-      kind: "renewal",
-      title: `Yenileme: ${productLabel(product)}${insurer ? ` (${insurer})` : ""} — ${days} gün kaldı, bitiş ${fmtYmd(endDate)}`,
-      createdBy: userId,
-    });
-  }
-}
-
-async function insertPolicy(tx: Tx, userId: string, p: PolicyInput) {
-  const [row] = await tx.insert(policies).values(p).returning({ id: policies.id });
-  await syncRenewalAlarms(tx, userId, row.id, p.contactId, p.product, p.insurer, p.endDate);
-  await tx.insert(activities).values({
-    contactId: p.contactId,
-    requestId: p.requestId ?? null,
-    userId,
-    type: "system",
-    body: `Poliçe eklendi: ${productLabel(p.product)}${p.insurer ? ` · ${p.insurer}` : ""}${p.endDate ? ` · yenileme ${fmtYmd(p.endDate)}` : ""}`,
-  });
-  return row.id;
 }
 
 const policySchema = z.object({

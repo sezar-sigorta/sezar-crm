@@ -26,7 +26,7 @@ Next.js 15 (App Router, server actions) · Tailwind v4 · Drizzle ORM · Postgre
 | `src/lib/ingest.ts` | Tüm kanalların ortak giriş noktası: profil bul/oluştur, talep aç ya da birleştir |
 | `src/lib/website.ts` | Site formunu CRM verisine çevirir (anket kodları → okunur cevaplar) |
 | `src/lib/meta.ts` | Meta lead'ini Graph API'den çeker ve CRM verisine çevirir |
-| `src/app/api/intake/website` | Site formlarının geldiği uç nokta (`x-sezar-secret` başlığı ile) |
+| `src/app/api/intake/website` | Site formlarının ve siteden online kesilen poliçelerin (`type: "police"`) geldiği uç nokta (`x-sezar-secret` başlığı ile) |
 | `src/app/api/meta/webhook` | Meta webhook'u (imza doğrulamalı) |
 | `src/app/(app)/` | Ekranlar: Pano, Talepler, Leadler, Müşteriler, Kişi profili (lead / müşteri), Yeni lead, Entegrasyonlar |
 

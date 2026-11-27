@@ -21,7 +21,7 @@ const yes = (v: unknown) => v === true || v === "on" || v === "1" || v === "true
 //   { type: 'urun', form, pol, pk: [product ids], urun, mode, seg, c: { ad, tel, k, p },
 //     email, dogum, sehir, adres, answers: { <question label>: value }, page, lang }
 // Its product ids → CRM products. 'uzman' = "let an expert call me", no product chosen.
-const SITE_PRODUCTS: Record<string, ProductCode> = {
+export const SITE_PRODUCTS: Record<string, ProductCode> = {
   trafik: "trafik", kasko: "kasko", imm: "imm", dask: "dask", konut: "konut",
   tss: "tamamlayici_saglik", ozs: "ozel_saglik", hayat: "hayat", ferdi: "ferdi_kaza", seyahat: "seyahat_saglik",
   evcil: "evcil_hayvan", isyeri: "isyeri", tpl: "ucuncu_sahis", ims: "isveren_mali", siber: "siber_risk",
